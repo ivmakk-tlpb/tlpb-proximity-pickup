@@ -1,0 +1,9 @@
+# Build output
+bin/
+obj/
+
+# Package artifacts
+dist/
+
+# Contact sheets of the image tool
+nexus/images/variants/

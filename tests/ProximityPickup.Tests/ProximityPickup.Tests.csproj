@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\src\GroupPickupLogic.cs" Link="GroupPickupLogic.cs" />
+    <Compile Include="..\..\src\LabelGrouping.cs" Link="LabelGrouping.cs" />
+    <Compile Include="..\..\src\LabelLayout.cs" Link="LabelLayout.cs" />
+    <Compile Include="..\..\src\HintText.cs" Link="HintText.cs" />
+    <Compile Include="..\..\src\HoverGeometry.cs" Link="HoverGeometry.cs" />
+    <Compile Include="..\..\src\HoverFreeze.cs" Link="HoverFreeze.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
+    <PackageReference Include="xunit.v3" Version="4.0.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="4.0.0" />
+  </ItemGroup>
+
+</Project>

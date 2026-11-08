@@ -1,0 +1,1 @@
+Merges the labels of nearby items into one, and picks the whole pile with one click.

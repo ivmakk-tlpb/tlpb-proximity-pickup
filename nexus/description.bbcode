@@ -1,0 +1,36 @@
+Items dropped close together are hard to pick: the labels pile up on top of each other, a click often hits the wrong item, and 10 sticks take 10 clicks. With this mod each pile has one label, and the number on it is what you get with one click.
+
+[size=4][b]Main features[/b][/size]
+[list]
+[*][b]Merged labels.[/b] With the item labels on, items of the same kind within 2 m merge into one label with the total, such as "Stick (11)". A single item keeps the game's own label, with its condition. A pile wider than 2 m can show two labels, each with its own count.[/*]
+[*][b]One click for the whole pile.[/b] Click a label, or an item with a label, to pick all the items on that label. Your character plays one pickup animation, and one "+N" message shows. A label next to it stays. With the labels off, a click on an item also picks the items of the same kind within 2 m, and the name you hover shows the total.[/*]
+[*][b]No overlapping labels.[/b] Labels that still overlap move up or down until each has its own space, also the labels of stockpiles, resources, and constructions.[/*]
+[*][b]Label boxes.[/b] Each label sits on a half-transparent dark box, and the whole box is clickable. Area names such as "Lake" have no box.[/*]
+[*][b]A hover that stays in place.[/b] Move the cursor onto a label or onto its item, and the name stays where the label was, with the same color. Its box gets darker and gains a thin border. The labels around it do not move.[/*]
+[*][b]Actions above the hotbar.[/b] The actions of the hovered thing, such as "Pick up", and their keys show in one line above the hotbar, so nothing covers the item. When you hold an action, the box of the label fills from the left.[/*]
+[*][b]The game's rules apply.[/b] Each item goes through the game's own pickup, so the inventory limits stay the same. Items that do not fit stay on the ground, and nothing is lost or duplicated. The whole pile takes the time of one pickup instead of one pickup for each item.[/*]
+[*][b]Large items are picked one at a time.[/b] Items that go into your hands or onto your back (large items, two-handed items, lit fuel, and items worn on the back) are never picked as a group, so a pickup never changes what you hold or wear. Their labels still merge, and a click picks one of them.[/*]
+[*][b]Save safety.[/b] The mod writes nothing to your save. You can remove it at any time.[/*]
+[*][b]Single player.[/b] Made and tested for single player. Co-op is not tested.[/*]
+[/list]
+
+[size=4][b]Requirements[/b][/size]
+[list]
+[*]The Last Plague: Blight 0.12.7 or later.[/*]
+[*][url=https://www.nexusmods.com/thelastplagueblight/mods/9]BepInEx for The Last Plague: Blight[/url].[/*]
+[/list]
+
+[size=4][b]Installation[/b][/size]
+[list=1]
+[*]Install [url=https://www.nexusmods.com/thelastplagueblight/mods/9]BepInEx[/url].[/*]
+[*]Extract this mod's zip into the game folder (the folder with the game .exe). The DLL lands in BepInEx\plugins. Full path example:
+[code]C:\Program Files (x86)\Steam\steamapps\common\The Last Plague\BepInEx\plugins\ProximityPickup.dll[/code][/*][/list]
+
+[size=4][b]Uninstall[/b][/size]
+Delete [font=Courier New]ProximityPickup.dll[/font] from the [font=Courier New]BepInEx\plugins[/font] folder.
+
+[size=4][b]Configuration[/b][/size]
+To change mod settings, edit [font=Courier New]BepInEx\config\com.ivmakk.thelastplagueblight.proximitypickup.cfg[/font] while the game is closed (see [url=https://github.com/ivmakk-tlpb/tlpb-proximity-pickup/blob/main/CONFIG.md]CONFIG.md[/url] for every setting). Changes apply at the next game start.
+
+[size=4][b]Source and license[/b][/size]
+Open source under GPL-3.0: [url=https://github.com/ivmakk-tlpb/tlpb-proximity-pickup]github.com/ivmakk-tlpb/tlpb-proximity-pickup[/url]

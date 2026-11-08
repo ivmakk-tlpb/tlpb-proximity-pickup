@@ -1,0 +1,37 @@
+{
+  "nexus": {
+    "name": "Proximity Pickup",
+    "author": "ivmakk",
+    "category": "Miscellaneous",
+    "summary": "Merges the labels of nearby items into one, and picks the whole pile with one click."
+  },
+  "thumbnail": {
+    "out": "01-thumb.jpg",
+    "screenshot": "mod-on.jpg",
+    "crop": [-200, 1040, 1920, 1080],
+    "layout": {
+      "gradient": "linear-gradient(0deg, rgba(10,11,9,0.97) 0%, rgba(10,11,9,0.95) 13%, rgba(10,11,9,0.78) 18%, rgba(10,11,9,0.42) 23%, rgba(10,11,9,0.14) 28%, rgba(10,11,9,0) 33%), linear-gradient(90deg, rgba(10,11,9,0.97) 0%, rgba(10,11,9,0.94) 34%, rgba(10,11,9,0.82) 42%, rgba(10,11,9,0.62) 48%, rgba(10,11,9,0.4) 54%, rgba(10,11,9,0.22) 60%, rgba(10,11,9,0.09) 67%, rgba(10,11,9,0.02) 74%, rgba(10,11,9,0) 80%)"
+    },
+    "title": [{ "text": "Proximity", "accent": true }, { "text": "Pickup" }],
+    "rows": [
+      {
+        "icon": "resources.assets/KeyboardAlt",
+        "caption": [{ "text": "Clean Diablo-style labels", "accent": true }, { "text": "that never overlap" }]
+      },
+      {
+        "icon": "resources.assets/MouseLMB",
+        "caption": [{ "text": "One click picks up", "accent": true }, { "text": "all the same items nearby" }]
+      }
+    ]
+  },
+  "background": {
+    "out": "banner.jpg",
+    "screenshot": "mod-on.jpg",
+    "crop": [300, 1510, 1420, 406],
+    "darken": [
+      "linear-gradient(90deg, rgba(12,12,14,0.92) 0%, rgba(12,12,14,0) 48%)",
+      "linear-gradient(180deg, rgba(12,12,14,0) 59%, rgba(12,12,14,0.6) 100%)"
+    ],
+    "overlays": []
+  }
+}
