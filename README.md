@@ -1,3 +1,5 @@
+![version](https://img.shields.io/badge/version-1.0.0-blue) ![coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)
+
 # Proximity Pickup
 
 Proximity Pickup is a mod for the Steam game *The Last Plague: Blight*. Items dropped close together are hard to pick: with the item labels on (Alt), the labels pile up on top of each other, a click often hits the wrong item, and a pile of 10 sticks takes 10 clicks. The mod merges the labels of a pile into one label such as "Stick (10)", keeps all labels apart, and picks the whole pile with one click.
