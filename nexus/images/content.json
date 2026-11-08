@@ -3,7 +3,7 @@
     "name": "Proximity Pickup",
     "author": "ivmakk",
     "category": "Miscellaneous",
-    "summary": "Merges the labels of nearby items into one, and picks the whole pile with one click."
+    "summary": "Diablo-style item labels that never overlap. One click picks up the whole pile."
   },
   "thumbnail": {
     "out": "01-thumb.jpg",

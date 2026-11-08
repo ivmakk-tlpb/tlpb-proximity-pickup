@@ -1,1 +1,1 @@
-Merges the labels of nearby items into one, and picks the whole pile with one click.
+Diablo-style item labels that never overlap. One click picks up the whole pile.
