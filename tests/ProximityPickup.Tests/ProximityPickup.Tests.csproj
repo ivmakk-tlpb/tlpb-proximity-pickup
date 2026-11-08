@@ -15,9 +15,11 @@
     <Compile Include="..\..\src\HintText.cs" Link="HintText.cs" />
     <Compile Include="..\..\src\HoverGeometry.cs" Link="HoverGeometry.cs" />
     <Compile Include="..\..\src\HoverFreeze.cs" Link="HoverFreeze.cs" />
+    <Compile Include="..\..\src\DigSpots.cs" Link="DigSpots.cs" />
     <Compile Include="..\..\src\Plugin.cs" Link="Plugin.cs" />
     <Compile Include="..\..\src\Labels\LabelPatches.cs" Link="Labels\LabelPatches.cs" />
     <Compile Include="..\..\src\Pickup\PickupPatches.cs" Link="Pickup\PickupPatches.cs" />
+    <Compile Include="..\..\src\Pickup\DigPatches.cs" Link="Pickup\DigPatches.cs" />
   </ItemGroup>
 
   <ItemGroup>

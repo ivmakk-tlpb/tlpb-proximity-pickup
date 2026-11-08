@@ -17,6 +17,8 @@ public enum InteractionSource { WORLD }
 
 public enum ItemTag { EQUIPPABLE, TWO_HANDED, WORN_ON_BACK }
 
+public enum SurfaceType { NONE, MUD, CLAY, DIRT, TILLED_SOIL, WET_TILLED_SOIL }
+
 public enum InputAction { Interact = 1, Sprint = 2 }
 
 public static class L
@@ -71,6 +73,8 @@ public class Entity : Il2CppObjectBase
 
     public int id;
     public bool destroyed;
+    public bool isHostEntity = true;
+    public World world;
     public Transform transform;
 
     public void SetCached<T>(T component) where T : class { cached[typeof(T)] = component; }
@@ -185,6 +189,97 @@ public class InteractionManager : Il2CppObjectBase
 }
 
 public class IInteraction : Il2CppObjectBase { }
+
+public class ItemDrop : Il2CppObjectBase { }
+
+public class World : Il2CppObjectBase
+{
+    public Il2CppSystem.Collections.Generic.HashSet<SurfaceType> specialGatherSurfaceTypes = new Il2CppSystem.Collections.Generic.HashSet<SurfaceType>();
+    public float Height = 5f;
+    public System.Func<Vector3, SurfaceType> Surface = _ => SurfaceType.CLAY;
+    public System.Func<Vector3, bool> HasDrops = _ => true;
+    public System.Func<Vector3, bool> Solid = _ => false;
+    public float Deepness;
+
+    public Vector3 GetPositionOnTerrain(Vector3 sourcePosition) => new Vector3(sourcePosition.x, Height, sourcePosition.z);
+    public SurfaceType GetSurfaceTypeAtTerrainPosition(Vector3 position) => Surface(position);
+    public bool IsSolidObjectTakenPosition(Vector3 position) => Solid(position);
+    public float GetTerrainDeepness(Vector3 position, float radius) => Deepness;
+
+    public Il2CppSystem.Collections.Generic.List<ItemDrop> GetGatherItemDropsAtPosition(Vector3 position)
+    {
+        var drops = new Il2CppSystem.Collections.Generic.List<ItemDrop>();
+        if (HasDrops(position)) drops.Add(new ItemDrop());
+        return drops;
+    }
+}
+
+public class BaseInteraction : IInteraction
+{
+    public uint id;
+    public int Ends;
+
+    public void End() { Ends++; }
+}
+
+public class TerrainGatherInteraction : BaseInteraction
+{
+    public Vector3 targetPosition;
+    public SurfaceType targetSurfaceType;
+}
+
+public class DigTerrainEffect : Il2CppObjectBase
+{
+    public struct DigTerrainEffectResult
+    {
+        public bool success;
+        public bool insufficientSpace;
+        public Il2CppSystem.Collections.Generic.List<Il2CppSystem.ValueTuple<int, int>> itemCounts;
+    }
+
+    public IInteraction Interaction;
+    public Entity Interactor;
+
+    private const int ParamsOffset = 0x30;
+
+    // Runs for each ExecuteResult call, with the position and the surface of the params in native memory.
+    public System.Func<Vector3, SurfaceType, DigTerrainEffectResult> OnExecute;
+
+    public readonly List<(Vector3 Position, SurfaceType Surface)> Executed = new List<(Vector3, SurfaceType)>();
+    public readonly List<DigTerrainEffectResult> Finished = new List<DigTerrainEffectResult>();
+
+    // A native block, because the mod reads and writes the params at their offsets.
+    public DigTerrainEffect()
+    {
+        Pointer = System.Runtime.InteropServices.Marshal.AllocHGlobal(0x60);
+    }
+
+    public void SetParams(Vector3 position, SurfaceType surface)
+    {
+        System.Runtime.InteropServices.Marshal.WriteInt32(Pointer + ParamsOffset, System.BitConverter.SingleToInt32Bits(position.x));
+        System.Runtime.InteropServices.Marshal.WriteInt32(Pointer + ParamsOffset + 4, System.BitConverter.SingleToInt32Bits(position.y));
+        System.Runtime.InteropServices.Marshal.WriteInt32(Pointer + ParamsOffset + 8, System.BitConverter.SingleToInt32Bits(position.z));
+        System.Runtime.InteropServices.Marshal.WriteInt32(Pointer + ParamsOffset + 12, (int)surface);
+    }
+
+    public (Vector3 Position, SurfaceType Surface) ReadParams()
+    {
+        float Read(int offset) => System.BitConverter.Int32BitsToSingle(System.Runtime.InteropServices.Marshal.ReadInt32(Pointer + ParamsOffset + offset));
+        return (new Vector3(Read(0), Read(4), Read(8)), (SurfaceType)System.Runtime.InteropServices.Marshal.ReadInt32(Pointer + ParamsOffset + 12));
+    }
+
+    public IInteraction GetInteraction() => Interaction;
+    public Entity GetInteractorEntity() => Interactor;
+
+    public DigTerrainEffectResult ExecuteResult()
+    {
+        var current = ReadParams();
+        Executed.Add(current);
+        return OnExecute(current.Position, current.Surface);
+    }
+
+    public void OnExecuted(DigTerrainEffectResult result) { Finished.Add(result); }
+}
 
 public class PickupInteraction : IInteraction
 {

@@ -14,7 +14,8 @@ Proximity Pickup is a mod for the Steam game *The Last Plague: Blight*. Items dr
 - **Pick a pile with one click.** Click a label, or an item with a label, to pick all the items on that label: a click on "Stick (11)" picks 11 sticks. A label next to it stays. With the labels off, click an item to also pick every item of the same kind within 2 m of it, and hover it to see the total. Your character plays one pickup animation, then the items go into your inventory, with one "+N" message.
 - **The game's rules apply.** Each item goes through the game's own pickup, so the inventory limits stay the same. When your inventory is full, the items that do not fit stay on the ground, and the game shows its usual message. Nothing is lost or duplicated. The whole pile takes the time of one pickup instead of one pickup for each item.
 - **Large items are picked one at a time.** Items that the game puts into your hands or onto your back (large items, two-handed items, lit fuel, the substances that the game puts into your hands, and items worn on the back) never take part in a group pickup, so a pickup never changes what you hold or wear. Their labels still merge, and a click picks one of them. Small stones, tools, and weapons are picked as a group only while your bag has room for them: when the bag is full, they stay on the ground, and your hands stay as they are.
-- **Turn the group pickup off.** Set `PickMode` to `One` to pick one item for each click, as in the game. The merged labels stay on.
+- **Collect clay and mud in one click.** Collect from clay, mud, or sand with your hands, and one action takes the same kind of ground within `PickupRadius`: at 2 m, up to 69 normal tries, with a limit of 256 tries at a large radius. Each spot gives the normal yield of one try, and one message shows the total. Your character stops after the one action, so click again for more. Other kinds of ground and spots where the game does not let you collect are skipped. If the game charges Stamina or tool wear for a try, it charges each spot. When your bag is full, the collecting stops and the game shows its usual message. Dirt, tilled ground, Clay Deposits, sticks, rocks, and digging with a shovel stay as in the game.
+- **Turn the group pickup and the group collect off.** Set `PickMode` to `One` to pick one item for each click and to collect one try at a time, as in the game. The merged labels stay on.
 
 ## Save safety
 
@@ -22,7 +23,7 @@ The mod writes nothing to the save. You can remove it at any time, and your save
 
 ## Multiplayer
 
-Made and tested for single player. Only pickups by your own character pick a group; pickups by other characters are not changed. Co-op is not tested.
+Made and tested for single player. Only pickups by your own character pick a group; pickups by other characters are not changed. Collecting from the ground works in a radius only for the player who hosts the game. Co-op is not tested.
 
 ## Requirements
 

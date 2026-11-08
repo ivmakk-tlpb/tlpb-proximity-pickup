@@ -38,9 +38,9 @@ public class PluginTests : GameTestBase
     }
 
     [Fact]
-    public void Both_patch_classes_are_patched()
+    public void Each_patch_class_is_patched()
     {
-        Assert.Equal(new[] { typeof(LabelPatches), typeof(PickupPatches) }, Harmony.Patched);
+        Assert.Equal(new[] { typeof(LabelPatches), typeof(PickupPatches), typeof(DigPatches) }, Harmony.Patched);
         Assert.Empty(Harmony.Unpatched);
         Assert.Empty(Plugin.Log.Warnings);
         Assert.Contains("Proximity Pickup loaded.", Plugin.Log.Infos);
@@ -51,7 +51,7 @@ public class PluginTests : GameTestBase
     {
         LoadAgainWithFailing(typeof(LabelPatches));
 
-        Assert.Equal(new[] { typeof(PickupPatches) }, Harmony.Patched);
+        Assert.Equal(new[] { typeof(PickupPatches), typeof(DigPatches) }, Harmony.Patched);
         Assert.Equal(new[] { Plugin.PluginGuid + ".LabelPatches" }, Harmony.Unpatched);
         Assert.Equal(new[] { "Label groups is off: Target not found" }, Plugin.Log.Warnings);
     }
@@ -61,9 +61,18 @@ public class PluginTests : GameTestBase
     {
         LoadAgainWithFailing(typeof(PickupPatches));
 
-        Assert.Equal(new[] { typeof(LabelPatches) }, Harmony.Patched);
+        Assert.Equal(new[] { typeof(LabelPatches), typeof(DigPatches) }, Harmony.Patched);
         Assert.Equal(new[] { Plugin.PluginGuid + ".PickupPatches" }, Harmony.Unpatched);
         Assert.Equal(new[] { "Group pickup is off: Target not found" }, Plugin.Log.Warnings);
+    }
+
+    [Fact]
+    public void A_failed_group_dig_patch_leaves_the_other_parts_on()
+    {
+        LoadAgainWithFailing(typeof(DigPatches));
+
+        Assert.Equal(new[] { typeof(LabelPatches), typeof(PickupPatches) }, Harmony.Patched);
+        Assert.Equal(new[] { "Group dig is off: Target not found" }, Plugin.Log.Warnings);
     }
 
     [Fact]
