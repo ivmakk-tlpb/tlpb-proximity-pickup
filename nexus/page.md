@@ -5,7 +5,7 @@ Tracks the mod's Nexus page details.
 - Mod name: Proximity Pickup
 - Game domain: `thelastplagueblight` (add-mod page: https://www.nexusmods.com/thelastplagueblight/mods/add)
 - Mod id and URL: `10`, https://www.nexusmods.com/thelastplagueblight/mods/10 (published on 2026-11-08).
-- Category: chosen from the list on the add-mod page. Record it here.
+- Category: Miscellaneous (category id `2`), the only category that Nexus offers for this game.
 - Version to upload: `1.0.0`
 - File name under Manage Files: `Proximity Pickup 1.0.0`, the zip `ProximityPickup-1.0.0.zip`, marked as the main file. It is the same zip as the GitHub Release asset.
 - Requirement: BepInEx Pack for The Last Plague: Blight (https://www.nexusmods.com/thelastplagueblight/mods/9). Add it as a Nexus requirement, so the page gets a Requirements tab.
