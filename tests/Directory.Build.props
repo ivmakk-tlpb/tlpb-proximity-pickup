@@ -2,7 +2,7 @@
 
   <!-- Intentionally empty. This stops the Directory.Build.props walk so the test projects under
        tests\ do NOT import mods\Directory.Build.props, which adds the game's IL2CPP references.
-       Those assemblies need the running game and cannot load in a test host. The tests link only
-       the game-free files of src\. -->
+       Those assemblies need the running game and cannot load in a test host. The tests link all
+       files of src\, and the test project compiles the game-facing files against its fake game types. -->
 
 </Project>

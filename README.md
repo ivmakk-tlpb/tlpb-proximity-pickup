@@ -61,7 +61,7 @@ dotnet build src/ProximityPickup.csproj -c Release
 
 `Directory.Build.props` sets `GameDir` to the default Steam installation path. For another location, set the `GameDir` environment variable or pass `-p:GameDir=...` to the build command. The output DLL is `src\bin\Release\ProximityPickup.dll`.
 
-Unit tests cover the label merge, the label layout, the choice of the items that a pickup takes, the action text above the hotbar, and the place of a hovered label. The tested code has no game dependencies: `src/LabelGrouping.cs`, `src/LabelLayout.cs`, `src/GroupPickupLogic.cs`, `src/HintText.cs`, `src/HoverGeometry.cs`, and `src/HoverFreeze.cs`.
+Unit tests cover all files of `src/`: the label merge, the label layout, the pickup flow, the plugin load, the hover state, and the values that the drawing code sets. The tests run with no game and no BepInEx, because the test project compiles the patch code against the fake game types in `tests/ProximityPickup.Tests/Fakes/`. A passing test does not show that a patch fires in the game.
 
 ```
 dotnet test tests/ProximityPickup.Tests

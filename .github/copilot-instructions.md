@@ -15,7 +15,8 @@ This repo is a BepInEx 6 (IL2CPP) Harmony mod for *The Last Plague: Blight*. Plu
 ## Structure and tests
 
 - **Feature folders.** `src/Plugin.cs` holds only the plugin: the config, the patch list, and `Load`. `src/Labels/` holds the label patches, and `src/Pickup/` the pickup patches.
-- **Pure logic is separated and tested.** Logic that does not need the running game lives in its own file with no BepInEx or Il2Cpp reference (`LabelGrouping`, `LabelLayout`, `GroupPickupLogic`, `HintText`, `HoverGeometry`, `HoverFreeze`), and the test project links these files.
+- **Pure logic is separated and tested.** Logic that does not need the running game lives in its own file with no BepInEx or Il2Cpp reference (`LabelGrouping`, `LabelLayout`, `GroupPickupLogic`, `HintText`, `HoverGeometry`, `HoverFreeze`).
+- **Each file of `src/` has a link in the test project.** The game-facing files compile against the fake game types of `tests/ProximityPickup.Tests/Fakes/`, so the tests run with no game. Flag a new source file with no `<Compile Include>` link. A fake holds only the types and members that the mod reaches. A passing test does not show that a patch fires in the game.
 - **The per-frame hook has a budget.** `HudUI.Update` runs each frame, so its postfix must stay within a mean of 2 ms. Flag a physics call, a game lookup for each pair of labels, or a text measurement with no cache in that path.
 - **Patches** prefer a postfix, and tie the `Harmony` instance to the plugin GUID.
 - **One rule for the label and the click.** The number on a label is the number of items that a click on the label takes. Flag a change to the label groups or to the pickup that breaks this.
