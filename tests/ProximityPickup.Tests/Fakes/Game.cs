@@ -7,13 +7,50 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public enum InteractionType { PICKUP, OTHER }
+public enum InteractionType { NONE, PICKUP, GATHER, OTHER }
 
-public enum InteractionInputType { PRIMARY }
+public enum InteractionInputType { BEGIN, HOLD, END }
 
-public enum ActionType { DEFAULT }
+public enum ActionType { PRIMARY, SECONDARY }
 
-public enum InteractionSource { WORLD }
+public enum InteractionSource { PLAYER, ENTITY }
+
+public enum InteractionOrdinality { PRIMARY, SECONDARY }
+
+public class InteractionEventParams : Il2CppObjectBase
+{
+    public InteractionSource source;
+    public InteractionOrdinality ordinality;
+    public ActionType actionType;
+    public InteractionInputType inputType;
+    public Entity interactorEntity;
+    public Entity targetEntity;
+    public InteractionType desiredInteractionType;
+    public Il2CppSystem.Collections.Generic.HashSet<InteractionType> requiredInteractionTypes;
+    public Il2CppSystem.Collections.Generic.HashSet<InteractionType> ignoredInteractionTypes;
+    public object data;
+}
+
+public class InteractionEventHandler : Il2CppObjectBase
+{
+    public void Execute(InteractionEventParams eventParams) { }
+}
+
+public class InteractionResult : Il2CppObjectBase
+{
+    public bool possible, started, withinRange;
+}
+
+public class IInteractor : Il2CppObjectBase { }
+
+public class PlayerInputView : Il2CppObjectBase
+{
+    public Entity entity;
+    public Entity primaryActionDownEntity;
+    public bool primaryActionUpLocked;
+
+    public void Update() { }
+}
 
 public enum ItemTag { EQUIPPABLE, TWO_HANDED, WORN_ON_BACK }
 
@@ -32,6 +69,9 @@ public class InventoryItem : Il2CppObjectBase
 {
     public string Identifier;
     public string Name;
+    public int Width = 1, Height = 1;
+    // The stack size of a stack of this item. A test-only value: the game reads it from the stack.
+    public int MaxStack = 1;
     public readonly HashSet<ItemTag> Tags = new HashSet<ItemTag>();
 
     public bool HasTag(ItemTag tag) => Tags.Contains(tag);
@@ -44,6 +84,7 @@ public class InventoryItemStack : Il2CppObjectBase
     public bool PrefersEquipped;
 
     public bool PreferEquippedSlot() => PrefersEquipped;
+    public int GetMaxStackAmount() => Item?.MaxStack ?? 1;
 }
 
 public class IPickupable : Il2CppObjectBase
@@ -56,8 +97,36 @@ public class IPickupable : Il2CppObjectBase
 public class Inventory : Il2CppObjectBase
 {
     public bool Room = true;
+    public readonly List<InventorySlot> Slots = new List<InventorySlot>();
 
     public bool HasRoom(InventoryItemStack stack) => Room;
+
+    public Il2CppSystem.Collections.Generic.List<InventorySlot> GetAllSlots()
+    {
+        var all = new Il2CppSystem.Collections.Generic.List<InventorySlot>();
+        foreach (var slot in Slots) all.Add(slot);
+        return all;
+    }
+}
+
+public class IInventorySection : Il2CppObjectBase { }
+
+public class InventorySlot : Il2CppObjectBase
+{
+    public IInventorySection inventorySection;
+    public InventoryItemStack Stack;
+    public bool Handheld;
+    public bool Accepts = true;
+    public bool Allowed = true;
+    // True for a cell of a stack larger than one slot: the stack lies in its origin slot.
+    public bool Covered;
+
+    public InventoryItemStack GetStack() => Stack;
+    public bool HasOriginStack() => Covered || Stack != null;
+    public bool IsEmpty() => Stack == null;
+    public bool IsHandheld() => Handheld;
+    public bool AcceptsItems() => Accepts;
+    public bool IsItemAllowed(InventoryItem item, bool checkLinkedSlotRestriction) => Allowed;
 }
 
 public class IInventoryHolder : Il2CppObjectBase
@@ -100,6 +169,7 @@ public class IWorldManager : Il2CppObjectBase { }
 public class WorldManager : IWorldManager
 {
     public IEntityManager entityManager;
+    public IInventoryManager inventoryManager;
 }
 
 public class LocalPlayer : Il2CppObjectBase
@@ -185,12 +255,120 @@ public class HudUI : UIComponent
 
 public class InteractionManager : Il2CppObjectBase
 {
+    public IEntityManager entityManager;
+    public IInventoryManager inventoryManager;
+
     public void StartInteraction(InteractionType type, InteractionInputType inputType, ActionType actionType, Entity interactorEntity, InteractionSource source, Entity targetEntity) { }
 }
 
 public class IInteraction : Il2CppObjectBase { }
 
-public class ItemDrop : Il2CppObjectBase { }
+public class ItemDrop : Il2CppObjectBase
+{
+    public string itemIdentifier;
+    public int amount = 1;
+}
+
+public class Resource : Il2CppObjectBase
+{
+    public string Name;
+}
+
+public class IResource : Il2CppObjectBase
+{
+    public Resource Resource;
+
+    public Resource GetResource() => Resource;
+}
+
+public class IGatherable : Il2CppObjectBase
+{
+    public bool Ready = true;
+    public float Duration = 0.8f;
+    public bool Continuous;
+    public Il2CppSystem.Collections.Generic.List<ItemDrop> Drops = new Il2CppSystem.Collections.Generic.List<ItemDrop>();
+
+    public bool CanGather() => Ready;
+    public float GetGatherDuration() => Duration;
+    public bool GatherContinuously() => Continuous;
+    public Il2CppSystem.Collections.Generic.List<ItemDrop> GetItemDrops() => Drops;
+}
+
+public class IGrowable : Il2CppObjectBase
+{
+    public Il2CppSystem.Collections.Generic.List<ItemDrop> Accumulated = new Il2CppSystem.Collections.Generic.List<ItemDrop>();
+
+    public Il2CppSystem.Collections.Generic.List<ItemDrop> GetAccumulatedItemDrops() => Accumulated;
+}
+
+public class ISkills : Il2CppObjectBase
+{
+    public float ForageBonus;
+
+    public float GetForageBonusAmount() => ForageBonus;
+}
+
+public class IInventoryManager : Il2CppObjectBase
+{
+    public readonly Dictionary<string, InventoryItem> Items = new Dictionary<string, InventoryItem>();
+
+    public InventoryItem GetItem(string identifier) => Items.TryGetValue(identifier, out var item) ? item : null;
+
+    public InventoryItemStack GetInventoryItemStack(string identifier, int quantity)
+    {
+        var item = GetItem(identifier);
+        return item == null ? null : new InventoryItemStack { Item = item, Quantity = quantity };
+    }
+}
+
+public class GatherInteraction : BaseInteraction
+{
+    public Entity targetEntity;
+}
+
+public class GatherEffect : Il2CppObjectBase
+{
+    public struct GatherEffectResult
+    {
+        public bool success;
+        public bool insufficientSpace;
+        public Il2CppSystem.Collections.Generic.List<Il2CppSystem.ValueTuple<int, int>> itemCounts;
+    }
+
+    public IInventoryManager inventoryManager = new IInventoryManager();
+    public IInteraction Interaction = new GatherInteraction();
+    public ActionType Action = ActionType.PRIMARY;
+    public Entity Interactor, Target;
+
+    // Runs for each ExecuteResult call. A test sets it to give a result, or to enter the postfix again.
+    public System.Func<GatherEffect, GatherEffectResult> OnExecute;
+
+    public readonly List<Entity> Inits = new List<Entity>();
+    public readonly List<Entity> Executed = new List<Entity>();
+    public readonly List<GatherEffectResult> Finished = new List<GatherEffectResult>();
+
+    public Entity GetInteractorEntity() => Interactor;
+    public Entity GetTargetEntity() => Target;
+    public IInteraction GetInteraction() => Interaction;
+    public ActionType GetActionType() => Action;
+
+    public void Init(IInteraction interaction, Entity interactorEntity, Entity targetEntity, ActionType actionType)
+    {
+        Interaction = interaction;
+        Interactor = interactorEntity;
+        Target = targetEntity;
+        Action = actionType;
+        Inits.Add(targetEntity);
+    }
+
+    public GatherEffectResult ExecuteResult()
+    {
+        Executed.Add(Target);
+        return OnExecute(this);
+    }
+
+    public void OnExecuted(GatherEffectResult result) { Finished.Add(result); }
+}
 
 public class World : Il2CppObjectBase
 {
@@ -298,7 +476,7 @@ public class PickupEffect : Il2CppObjectBase
 
     public IEntityManager entityManager;
     public IInteraction Interaction = new IInteraction();
-    public ActionType Action = ActionType.DEFAULT;
+    public ActionType Action = ActionType.PRIMARY;
     public Entity Interactor, Target;
 
     // Runs for each ExecuteResult call. A test sets it to give a result, or to enter the postfix again.

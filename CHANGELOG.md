@@ -9,6 +9,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Added
 
 - One action of collecting clay, mud, or sand by hand takes the same kind of ground within `PickupRadius`, with one message for the total.
+- A gather of a ready resource that you gather in a moment (mushrooms, herbs, Dandelions, sticks, small stones, Clay Deposits) also gathers the same kind on its label, or within `PickupRadius` with the labels off. Each resource gives the yield and the XP of one normal gather, and one message shows the total.
+- A group gather stops before a resource whose drops do not fit in the bag, and that resource stays in the world.
+- Labels of ready resources of the same kind merge into one label with their number, such as "Spotted Red Mushroom (5)".
+- With the labels off, the hover name of a resource shows how many resources a click gathers.
+- A middle-click picks up one item or gathers one resource, also from a merged label. A hold or a drag of the middle mouse button still turns the camera.
+- The line of actions above the hotbar shows the middle mouse button with "Pick up one" or "Gather one" for a merged label.
+
+### Fixed
+
+- No empty label box shows above your character while you hold an item such as a bottle.
 
 ## [1.0.0] - 2026-11-08
 

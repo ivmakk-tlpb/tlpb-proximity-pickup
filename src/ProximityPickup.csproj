@@ -7,8 +7,9 @@
     <Version>1.0.0</Version>
   </PropertyGroup>
 
-  <!-- The item labels (UI, TextMeshPro) and the radius search (physics). -->
+  <!-- The item labels (UI, TextMeshPro), the radius search (physics), and the mouse and keys (Input System). -->
   <ItemGroup>
+    <_Ref Include="$(BepInExInterop)\Unity.InputSystem.dll" />
     <_Ref Include="$(BepInExInterop)\UnityEngine.UI.dll" />
     <_Ref Include="$(BepInExInterop)\UnityEngine.UIModule.dll" />
     <_Ref Include="$(BepInExInterop)\Unity.TextMeshPro.dll" />

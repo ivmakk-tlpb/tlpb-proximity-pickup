@@ -30,19 +30,22 @@ namespace ProximityPickup
                 "General", "PickMode", "Group",
                 new ConfigDescription(
                     "Group: a click on a label, or on an item with a label, picks all the items on that label. A click on an item with no label also picks the items of the same kind within PickupRadius. " +
+                    "A gather of a ready mushroom, herb, or other resource that you gather in a moment also gathers the resources of the same kind on its label, or within PickupRadius with no label. " +
                     "Collecting clay, mud, or sand by hand takes the same kind of ground within PickupRadius in one action. " +
-                    "One: each click picks one item and each try collects one spot, as in the game. The merged labels and the label layout stay on in both modes.",
+                    "One: each click picks one item, gathers one resource, and each try collects one spot, as in the game. The merged labels, the label layout, and the middle-click stay on in both modes.",
                     new AcceptableValueList<string>("Group", "One")));
             PickupRadius = Config.Bind(
                 "General", "PickupRadius", 2f,
-                "How close in meters items of the same kind must lie to merge into one label, how far a click on an item with no label reaches, and how far one action of collecting from the ground reaches (2 m gives up to 69 tries, with a limit of 256). " +
-                "0 merges no labels, picks only the clicked item, and collects one spot at a time.");
+                "How close in meters items or resources of the same kind must lie to merge into one label, how far a click on an item or resource with no label reaches, and how far one action of collecting from the ground reaches (2 m gives up to 69 tries, with a limit of 256). " +
+                "0 merges no labels, picks or gathers only the clicked thing, and collects one spot at a time.");
             Verbose = Config.Bind(
                 "General", "Verbose", false,
                 "Writes extra diagnostic lines to the BepInEx log for troubleshooting. Keep off in normal play.");
             Patch(typeof(Labels.LabelPatches), "Label groups");
             Patch(typeof(Pickup.PickupPatches), "Group pickup");
             Patch(typeof(Pickup.DigPatches), "Group dig");
+            Patch(typeof(Pickup.GatherPatches), "Group gather");
+            Patch(typeof(Pickup.ClickPatches), "Middle-click");
             Log.LogInfo("Proximity Pickup loaded.");
         }
 

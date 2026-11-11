@@ -1,1 +1,1 @@
-Diablo-style item labels that never overlap. One click picks up the whole pile.
+Diablo-style item labels that never overlap. One click picks up a whole pile or gathers a whole patch.

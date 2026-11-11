@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using HarmonyLib;
 using ProximityPickup.Labels;
-using ItemCounts = Il2CppSystem.Collections.Generic.List<Il2CppSystem.ValueTuple<int, int>>;
 
 namespace ProximityPickup.Pickup
 {
@@ -12,16 +11,13 @@ namespace ProximityPickup.Pickup
     // of the radius, so the drops, the inventory rules, the terrain, and the cost stay the game's. The result of the
     // first dig gets the summed item counts, so the game shows one message.
     //
-    // The interop cannot be used for two parts, so they go through native memory at offsets from the game context:
-    // it reads zeros from the params of the effect's generic base class, and it cannot read ValueTuple items.
+    // The interop reads zeros from the params of the effect's generic base class, so the params go through native
+    // memory at offsets from the game context, as the item counts do (NativeItemCounts).
     [HarmonyPatch]
     internal static class DigPatches
     {
         // DigTerrainEffect.effectParams: the position as 3 floats, then the surface.
         private const int ParamsOffset = 0x30, SurfaceOffset = 0x3C;
-
-        // An IL2CPP List<ValueTuple<int, int>> and its array of (item id, count) pairs.
-        private const int ListItems = 0x10, ListSize = 0x18, ArrayLength = 0x18, ArrayFirst = 0x20, EntrySize = 8;
 
         private const float SameSpot = 0.01f;
 
@@ -137,15 +133,15 @@ namespace ProximityPickup.Pickup
                         effect.OnExecuted(result);
                         full = true;
                     }
-                    else if (Capacity(first.itemCounts) == 0) first.itemCounts = result.itemCounts;
-                    else AddCounts(first.itemCounts, result.itemCounts);
+                    else if (NativeItemCounts.Capacity(first.itemCounts) == 0) first.itemCounts = result.itemCounts;
+                    else NativeItemCounts.AddCounts(first.itemCounts, result.itemCounts);
                 }
             }
             finally
             {
                 WriteParams(effect, clicked, clickedSurface);
                 inner = false;
-                Plugin.Debug($"Group dig: {spots.Count} spots, {digs} digs, sum {Sum(first.itemCounts)}, full {full}, {clock.ElapsedMilliseconds} ms");
+                Plugin.Debug($"Group dig: {spots.Count} spots, {digs} digs, sum {NativeItemCounts.Sum(first.itemCounts)}, full {full}, {clock.ElapsedMilliseconds} ms");
             }
         }
 
@@ -180,41 +176,5 @@ namespace ProximityPickup.Pickup
             Marshal.WriteInt32(effect.Pointer + SurfaceOffset, (int)surface);
         }
 
-        private static IntPtr ArrayOf(ItemCounts list) => Marshal.ReadIntPtr(list.Pointer + ListItems);
-
-        private static int Capacity(ItemCounts list) => Marshal.ReadInt32(ArrayOf(list) + ArrayLength);
-
-        private static int SizeOf(ItemCounts list) => Marshal.ReadInt32(list.Pointer + ListSize);
-
-        // Adds each count to the entry of its item in the target. An item with no entry and no room in the target
-        // stays out of the message, and it is in the inventory all the same.
-        private static void AddCounts(ItemCounts target, ItemCounts source)
-        {
-            IntPtr targetArray = ArrayOf(target), sourceArray = ArrayOf(source);
-            for (int i = 0; i < SizeOf(source); i++)
-            {
-                IntPtr entry = sourceArray + ArrayFirst + i * EntrySize;
-                int item = Marshal.ReadInt32(entry), count = Marshal.ReadInt32(entry + 4);
-                int index = 0, size = SizeOf(target);
-                while (index < size && Marshal.ReadInt32(targetArray + ArrayFirst + index * EntrySize) != item) index++;
-                if (index == Capacity(target)) continue;
-
-                IntPtr destination = targetArray + ArrayFirst + index * EntrySize;
-                if (index == size)
-                {
-                    Marshal.WriteInt32(destination, item);
-                    Marshal.WriteInt32(destination + 4, 0);
-                    Marshal.WriteInt32(target.Pointer + ListSize, size + 1);
-                }
-                Marshal.WriteInt32(destination + 4, Marshal.ReadInt32(destination + 4) + count);
-            }
-        }
-
-        private static int Sum(ItemCounts list)
-        {
-            int total = 0;
-            for (int i = 0; i < SizeOf(list); i++) total += Marshal.ReadInt32(ArrayOf(list) + ArrayFirst + i * EntrySize + 4);
-            return total;
-        }
     }
 }

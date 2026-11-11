@@ -163,6 +163,9 @@ internal sealed class LabelScene
     // The place where the game puts the label or the card from the next frame on.
     public void MoveInGame(Component owner, Vector3 at) => placeOf[owner].At = at;
 
+    // The text that the game writes to the label or the card from the next frame on.
+    public void SetGameText(Component owner, string text) => placeOf[owner].GameText = text;
+
     // One game frame: the game places each label and writes its own text, and then the postfix of the mod runs.
     // gamePlaces false: the game did not place the labels this frame, so they stay where the mod wrote them.
     public void Frame(bool gamePlaces = true)

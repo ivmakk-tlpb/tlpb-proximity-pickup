@@ -40,9 +40,9 @@ public class LabelDrawingTests : GameTestBase
         PatchCall.Run(typeof(LabelPatches), "SetFill", box, progress, color);
     }
 
-    private static float HideRows(HudUI hud, HudGameObjectUI card, bool hovered)
+    private static float HideRows(HudUI hud, HudGameObjectUI card, bool hovered, string takeOne = null)
     {
-        return (float)PatchCall.Run(typeof(LabelPatches), "HideRows", hud, card, hovered);
+        return (float)PatchCall.Run(typeof(LabelPatches), "HideRows", hud, card, hovered, takeOne);
     }
 
     private static void AssertRect(float xMin, float yMin, float xMax, float yMax, ScreenRect rect)
@@ -603,6 +603,152 @@ public class LabelDrawingTests : GameTestBase
         HideRows(scene.Hud, card, true);
 
         Assert.Single(Plugin.Log.Debugs, line => line.StartsWith("Hint panel hotkeys: <color="));
+    }
+
+    // The middle-click line of the hint panel
+
+    private const string MiddleMouse = "<sprite=\"MouseKeyboard\" name=MouseMMB>";
+
+    [Fact]
+    public void The_take_one_line_follows_the_game_lines_with_the_middle_mouse_button()
+    {
+        var panel = LabelScene.NewHintPanel();
+        var card = Card();
+        LabelScene.AddRow(card, "Pick up").descriptionText.color = red;
+
+        HideRows(scene.Hud, card, true, "Pick up one");
+
+        Assert.Contains("Pick up", panel.controls1.text);
+        Assert.Equal("<b>" + MiddleMouse + "</b> <color=#FF0000>Pick up one</color>", panel.controls2.text);
+        Assert.True(panel.controls2.gameObject.activeSelf);
+        Assert.False(panel.controls3.gameObject.activeSelf);
+    }
+
+    [Fact]
+    public void The_take_one_line_is_left_out_when_the_game_lines_fill_the_panel()
+    {
+        var panel = LabelScene.NewHintPanel();
+        var card = Card();
+        for (int i = 1; i <= 5; i++) LabelScene.AddRow(card, "Action" + i);
+
+        HideRows(scene.Hud, card, true, "Pick up one");
+
+        Assert.Contains("Action5", panel.controls5.text);
+        Assert.DoesNotContain(MiddleMouse, panel.controls5.text);
+    }
+
+    [Fact]
+    public void A_card_with_no_game_lines_gets_no_take_one_line()
+    {
+        var panel = LabelScene.NewHintPanel();
+        var card = Card();
+        LabelScene.AddRow(card, "Hidden").descriptionText.gameObject.SetActive(false);
+
+        HideRows(scene.Hud, card, true, "Pick up one");
+
+        Assert.False(panel.controls1.gameObject.activeSelf);
+    }
+
+    // The hovered card of a thing and the text of its middle-click line.
+    private InventoryControlsUI HoverCardOf(Entity entity, string title)
+    {
+        var panel = LabelScene.NewHintPanel();
+        scene.Frame();
+        var card = scene.OpenCard(entity, At(320f, 340f), title);
+        LabelScene.AddRow(card, "Act");
+        PatchCall.Run(typeof(LabelPatches), "MouseEnterPostfix", new object[] { entity });
+        scene.Frame();
+        return panel;
+    }
+
+    [Fact]
+    public void The_card_of_a_label_group_of_items_shows_pick_up_one()
+    {
+        var stick = scene.Item(10, "stick", new Vector3(1f, 0f, 0f), At(300f, 300f));
+        scene.Item(11, "stick", new Vector3(1.2f, 0f, 0f), At(300f, 400f));
+
+        var panel = HoverCardOf(stick, "Stick");
+
+        Assert.Contains("Pick up one", panel.controls2.text);
+    }
+
+    [Fact]
+    public void The_card_of_a_label_group_of_resources_shows_gather_one()
+    {
+        var items = new IInventoryManager();
+        items.Items["cap"] = new InventoryItem { Identifier = "cap", Name = "Cap" };
+        ((WorldManager)scene.Hud.worldManager).inventoryManager = items;
+        var mushroom = GatherPatchesTests.Resource(10, "Spotted Red Mushroom", 1f);
+        scene.AddLabel(mushroom, At(300f, 300f), "Spotted Red Mushroom");
+        scene.AddLabel(GatherPatchesTests.Resource(11, "Spotted Red Mushroom", 1.2f), At(300f, 400f), "Spotted Red Mushroom");
+
+        var panel = HoverCardOf(mushroom, "Spotted Red Mushroom");
+
+        Assert.Contains("Gather one", panel.controls2.text);
+    }
+
+    [Fact]
+    public void The_card_of_a_single_item_shows_no_take_one_line()
+    {
+        var stick = scene.Item(10, "stick", new Vector3(1f, 0f, 0f), At(300f, 300f));
+
+        var panel = HoverCardOf(stick, "Stick");
+
+        Assert.False(panel.controls2.gameObject.activeSelf);
+    }
+
+    [Fact]
+    public void The_card_of_a_thing_with_no_pickup_or_gather_shows_no_take_one_line()
+    {
+        var chest = LabelScene.NewEntity(10);
+        scene.AddLabel(chest, At(300f, 300f), "Stockpile");
+
+        var panel = HoverCardOf(chest, "Stockpile");
+
+        Assert.False(panel.controls2.gameObject.activeSelf);
+    }
+
+    [Fact]
+    public void The_card_of_a_label_group_for_the_hands_shows_no_take_one_line()
+    {
+        var a = LabelScene.NewItem(10, "large_stone", "Large Stone", new Vector3(1f, 0f, 0f), prefersEquipped: true);
+        scene.AddLabel(a, At(300f, 300f), "Large Stone");
+        scene.AddLabel(LabelScene.NewItem(11, "large_stone", "Large Stone", new Vector3(1.2f, 0f, 0f), prefersEquipped: true), At(300f, 400f), "Large Stone");
+
+        var panel = HoverCardOf(a, "Large Stone");
+
+        Assert.False(panel.controls2.gameObject.activeSelf);
+    }
+
+    [Fact]
+    public void In_the_pick_mode_one_a_label_group_shows_no_take_one_line()
+    {
+        Plugin.PickModeEntry.Value = "One";
+        var stick = scene.Item(10, "stick", new Vector3(1f, 0f, 0f), At(300f, 300f));
+        scene.Item(11, "stick", new Vector3(1.2f, 0f, 0f), At(300f, 400f));
+
+        var panel = HoverCardOf(stick, "Stick");
+
+        Assert.False(panel.controls2.gameObject.activeSelf);
+    }
+
+    [Fact]
+    public void The_card_of_an_item_with_no_label_and_a_radius_pickup_shows_pick_up_one()
+    {
+        var panel = LabelScene.NewHintPanel();
+        var stick = LabelScene.NewItem(10, "stick", "Stick", new Vector3(1f, 0f, 0f));
+        foreach (var entity in new[] { stick, LabelScene.NewItem(11, "stick", "Stick", new Vector3(1.5f, 0f, 0f)) })
+        {
+            var collider = new GameObject("collider").AddComponent<Collider>();
+            scene.EntityManager.Entities[collider.gameObject] = entity;
+            Physics.Hits.Add(collider);
+        }
+        var card = scene.OpenCard(stick, At(320f, 340f), "Stick");
+        LabelScene.AddRow(card, "Pick up");
+
+        scene.Frame();
+
+        Assert.Contains("Pick up one", panel.controls2.text);
     }
 
     // ReadKeys
