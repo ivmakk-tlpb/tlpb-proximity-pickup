@@ -189,6 +189,55 @@ public class PickupPatchesTests : GameTestBase
     }
 
     [Fact]
+    public void A_start_on_the_take_one_target_plans_one_item_and_clears_the_target()
+    {
+        var stick = Stick(10);
+        ClickPatches.TakeOneTarget = stick;
+
+        Click(stick);
+
+        Assert.Equal(PickupSource.None, Source);
+        Assert.Null(ClickPatches.TakeOneTarget);
+    }
+
+    [Fact]
+    public void A_restart_on_the_same_target_after_a_middle_click_stays_one_item()
+    {
+        var stick = Stick(10);
+        ClickPatches.TakeOneTarget = stick;
+        Click(stick);
+
+        Click(stick);
+
+        Assert.Equal(PickupSource.None, Source);
+    }
+
+    [Fact]
+    public void A_middle_click_on_a_target_with_an_open_group_plan_changes_it_to_one_item()
+    {
+        var stick = Stick(10);
+        Click(stick);
+        Assert.Equal(PickupSource.Radius, Source);
+        ClickPatches.TakeOneTarget = stick;
+
+        Click(stick);
+
+        Assert.Equal(PickupSource.None, Source);
+    }
+
+    [Fact]
+    public void A_start_by_another_character_keeps_the_take_one_target()
+    {
+        var stick = Stick(10);
+        ClickPatches.TakeOneTarget = stick;
+
+        Start(InteractionType.PICKUP, other, stick);
+        Start(InteractionType.GATHER, player, stick);
+
+        Assert.Same(stick, ClickPatches.TakeOneTarget);
+    }
+
+    [Fact]
     public void An_exception_at_the_start_goes_to_WarnOnce()
     {
         Plugin.PickModeEntry = null;
@@ -536,7 +585,7 @@ public class PickupPatchesTests : GameTestBase
         effect.Action = (ActionType)7;
         var interaction = effect.Interaction;
         IInteraction seen = null;
-        ActionType seenAction = ActionType.DEFAULT;
+        ActionType seenAction = ActionType.PRIMARY;
         effect.OnExecute = e => { seen = e.GetInteraction(); seenAction = e.GetActionType(); return Fitted(); };
 
         PickExtras(effect, player, target, new List<Entity> { Stick(11) }, out _);

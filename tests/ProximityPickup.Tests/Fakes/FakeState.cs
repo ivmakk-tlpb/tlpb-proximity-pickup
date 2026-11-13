@@ -12,6 +12,8 @@ internal static class FakeState
         Screen.height = 1080;
         Physics.Hits.Clear();
         Physics.Calls = 0;
+        Time.unscaledTime = 10f;
+        UnityEngine.InputSystem.Mouse.current = new UnityEngine.InputSystem.Mouse();
         Physics.LastCall = default;
         Harmony.Patched.Clear();
         Harmony.Unpatched.Clear();

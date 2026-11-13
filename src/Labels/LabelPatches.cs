@@ -34,6 +34,10 @@ namespace ProximityPickup.Labels
         // The entity of the label or hover card under the cursor, or null.
         internal static Entity Hovered;
 
+        // The entity of an open hover card in the last frame, or null. With the labels off, the hover card is the
+        // only sign of the thing under the cursor.
+        internal static Entity CardEntity;
+
         // The entity of the local player, from the HUD of the last frame.
         internal static Entity LocalPlayerEntity;
 
@@ -212,10 +216,12 @@ namespace ProximityPickup.Labels
             float radius = Plugin.PickupRadius.Value;
             int others = 0;
             int frame = Time.frameCount;
+            inventoryManager = hud.worldManager?.TryCast<WorldManager>()?.inventoryManager;
 
             // The hover card is a fixed obstacle at the place of its label. Its item takes part in the grouping
             // and is the representative of its group.
             openCards.Clear();
+            CardEntity = null;
             var cards = hud.entityHudMap;
             if (cards != null)
             {
@@ -226,6 +232,7 @@ namespace ProximityPickup.Labels
                     var ui = c.Current.Value;
                     if (entity == null || ui == null || !ui.gameObject.activeInHierarchy) continue;
                     openCards.Add(entity.id);
+                    CardEntity = entity;
                     var geometry = GeometryOf(ui, null);
                     if (geometry == null) continue;
                     // The title takes the font size of the item labels, so the hover card needs less room.
@@ -269,9 +276,8 @@ namespace ProximityPickup.Labels
                     freeze.LabelSeen(entity.id, frame);
                     if (labelColors.Count > MaxRemembered) labelColors.Clear();
                     labelColors[entity.id] = geometry.Text.color;
-                    var data = DataOf(entity);
                     slots[entity.id] = slot;
-                    if (data.Kind == null)
+                    if (!InputOf(entity, inventoryManager, out string kind, out string name, out int count))
                     {
                         slot.Rect = RectAt(geometry, slot.Position, TextSize(geometry, geometry.Text.text) + geometry.Padding);
                         movable.Add(new LayoutBox(entity.id, slot.Rect));
@@ -285,7 +291,7 @@ namespace ProximityPickup.Labels
                     slot.Rect = RectAt(geometry, slot.Position, size);
                     var world = entity.transform.position;
                     float distance = Vector3.Distance(world, playerPos);
-                    inputs.Add(new LabelInput(entity.id, data.Kind, data.Name, new WorldPoint(world.x, world.y, world.z), data.Stack.Quantity, distance, true));
+                    inputs.Add(new LabelInput(entity.id, kind, name, new WorldPoint(world.x, world.y, world.z), count, distance, true));
                 }
             }
 
@@ -438,23 +444,56 @@ namespace ProximityPickup.Labels
             at.x += shift.X;
             at.y += shift.Y;
             Write(slot.Transform, slot.Position, at);
-            obstacles.Add(new LayoutBox(-1, new ScreenRect(bounds.XMin + shift.X, bounds.YMin + shift.Y, bounds.XMax + shift.X, bounds.YMax + shift.Y)));
-
-            var box = PlaceBox(ui.transform, HoverGeometry.LabelBox(bounds), slot.Position, HoverBoxAlpha);
-            float progress = HideRows(hud, ui, Hovered != null && Hovered.id == entity.id);
-            if (title != null)
+            float progress = HideRows(hud, ui, Hovered != null && Hovered.id == entity.id, TakeOneText(entity, state, showsLabel));
+            // A card with no title text, such as a card that shows only the actions of an item in the hands, gets
+            // no label box: an empty box would float over the world.
+            if (title != null && string.IsNullOrWhiteSpace(title.text))
             {
-                SetBorder(box, title.color, entity.id, isNew);
-                SetFill(box, progress, title.color);
+                HideBox(ui.transform);
+                if (isNew) Plugin.Debug($"Hover card {entity.id}: empty title, no label box");
+            }
+            else
+            {
+                obstacles.Add(new LayoutBox(-1, new ScreenRect(bounds.XMin + shift.X, bounds.YMin + shift.Y, bounds.XMax + shift.X, bounds.YMax + shift.Y)));
+                var box = PlaceBox(ui.transform, HoverGeometry.LabelBox(bounds), slot.Position, HoverBoxAlpha);
+                if (title != null)
+                {
+                    SetBorder(box, title.color, entity.id, isNew);
+                    SetFill(box, progress, title.color);
+                }
             }
 
-            var data = DataOf(entity);
-            if (data.Kind == null || !everLabeled.Contains(entity.id)) return;
+            if (!everLabeled.Contains(entity.id) || !InputOf(entity, inventoryManager, out string kind, out string name, out int count)) return;
             slot.IsItem = true;
             slots[entity.id] = slot;
             var world = entity.transform.position;
             // A negative distance makes the hovered item the representative of its group.
-            inputs.Add(new LabelInput(entity.id, data.Kind, data.Name, new WorldPoint(world.x, world.y, world.z), data.Stack.Quantity, -1f, showsLabel));
+            inputs.Add(new LabelInput(entity.id, kind, name, new WorldPoint(world.x, world.y, world.z), count, -1f, showsLabel));
+        }
+
+        // The inventory manager of the world of the last frame. The resource checks need it to find the drop items.
+        private static IInventoryManager inventoryManager;
+
+        // The kind, the name, and the count of a label that can merge: a ground item, or a quick resource with the
+        // count 1. A resource can ripen or be gathered while its label shows, so it is read again in each pass.
+        private static bool InputOf(Entity entity, IInventoryManager items, out string kind, out string name, out int count)
+        {
+            var data = DataOf(entity);
+            kind = data.Kind;
+            name = data.Name;
+            count = 1;
+            if (kind != null)
+            {
+                count = data.Stack.Quantity;
+                return true;
+            }
+            var resource = entity.GetCachedComponent<IResource>(false)?.GetResource();
+            if (resource == null || items == null) return false;
+            var candidate = Pickup.GatherPatches.Candidate(entity, items);
+            if (candidate.Kind == null || candidate.PrefersEquippedSlot) return false;
+            kind = candidate.Kind;
+            name = resource.Name;
+            return true;
         }
 
         // A hover card with no label shows what a pickup of its item takes. The search runs once for each card.
@@ -477,7 +516,8 @@ namespace ProximityPickup.Labels
             try
             {
                 var target = Pickup.PickupPatches.Candidate(entity);
-                if (target.Kind == null || GroupPickupLogic.Plan(Plugin.PickMode, true, target, false) != PickupSource.Radius) return null;
+                if (target.Kind == null) return GatherCountTitle(hud, entity);
+                if (GroupPickupLogic.Plan(Plugin.PickMode, true, target, false) != PickupSource.Radius) return null;
                 var entityManager = hud.worldManager?.TryCast<WorldManager>()?.entityManager;
                 if (entityManager == null) return null;
                 var extras = Pickup.PickupPatches.FindWithinRadius(entityManager, entity, target.Kind, entity.transform.position, out _);
@@ -491,6 +531,29 @@ namespace ProximityPickup.Labels
                 Plugin.WarnOnce("Hover card count", e);
                 return null;
             }
+        }
+
+        // The text of the middle-click line of the hint panel when a click on the thing takes more than that thing,
+        // or null.
+        private static string TakeOneText(Entity entity, CardState state, bool showsLabel)
+        {
+            if (Plugin.PickMode != PickMode.Group) return null;
+            bool group = showsLabel ? labelGroupOf.TryGetValue(entity.id, out var labelGroup) && labelGroup.MemberIds.Count > 1 : state.CountTitle != null;
+            if (!group) return null;
+            if (DataOf(entity).Kind == null) return "Gather one";
+            return Pickup.PickupPatches.Candidate(entity).PrefersEquippedSlot ? null : "Pick up one";
+        }
+
+        // The title of a quick resource: the number of resources that a radius gather takes, or null.
+        private static string GatherCountTitle(HudUI hud, Entity entity)
+        {
+            var world = hud.worldManager?.TryCast<WorldManager>();
+            var resource = entity.GetCachedComponent<IResource>(false)?.GetResource();
+            if (world?.entityManager == null || world.inventoryManager == null || resource == null) return null;
+            var target = Pickup.GatherPatches.Candidate(entity, world.inventoryManager);
+            if (target.Kind == null || GroupPickupLogic.Plan(Plugin.PickMode, true, target, false) != PickupSource.Radius) return null;
+            var extras = Pickup.GatherPatches.FindWithinRadius(world.entityManager, entity.id, target.Kind, entity.transform.position, world.inventoryManager, out _);
+            return GroupPickupLogic.CardTitle(resource.Name, 1, extras.ConvertAll(_ => 1));
         }
 
         // Takes the place and the color of the label that the card replaced. The label of a hidden member of a
@@ -699,8 +762,8 @@ namespace ProximityPickup.Labels
 
         // Shows the action rows of a card in the hint panel hotkeys and puts the rows off the screen. The rows stay
         // alive, because the game keeps their text and their progress up to date. Returns the progress of the hold
-        // action of the card, or a negative value.
-        private static float HideRows(HudUI hud, HudGameObjectUI card, bool hovered)
+        // action of the card, or a negative value. takeOne: the text of the middle-click line, or null.
+        private static float HideRows(HudUI hud, HudGameObjectUI card, bool hovered, string takeOne)
         {
             var area = card.interactionsArea;
             if (area == null || !area.gameObject.activeInHierarchy) return -1f;
@@ -713,7 +776,7 @@ namespace ProximityPickup.Labels
                 // A copy of a game window can break with a game update, and that must not stop the labels.
                 try
                 {
-                    ShowInHintPanel(hud, rows);
+                    ShowInHintPanel(hud, rows, takeOne);
                 }
                 catch (Exception e)
                 {
@@ -736,7 +799,10 @@ namespace ProximityPickup.Labels
         private static InventoryControlsUI hintPanel;
         private static bool hintPanelUsed;
 
-        private static void ShowInHintPanel(HudUI hud, Il2CppArrayBase<HudObjectInteractionUI> rows)
+        // The game's short name of the middle mouse button: the sprite of its key "middle_mouse".
+        private const string MiddleMouseName = "<sprite=\"MouseKeyboard\" name=MouseMMB>";
+
+        private static void ShowInHintPanel(HudUI hud, Il2CppArrayBase<HudObjectInteractionUI> rows, string takeOne)
         {
             if (hintPanel == null)
             {
@@ -748,20 +814,19 @@ namespace ProximityPickup.Labels
             var lines = new[] { hintPanel.controls1, hintPanel.controls2, hintPanel.controls3, hintPanel.controls4, hintPanel.controls5 };
             int used = 0;
             bool changed = false;
+            string firstColor = null;
             foreach (var row in rows)
             {
                 var description = row.descriptionText;
                 if (used == lines.Length || description == null || !description.gameObject.activeInHierarchy) continue;
                 ReadKeys(hud.player, row.keyBindLabel, out string modifier, out string key);
-                string line = HintText.Line(modifier, key, ColorUtility.ToHtmlStringRGB(description.color), description.text);
-                if (lines[used].text != line)
-                {
-                    lines[used].text = line;
-                    changed = true;
-                }
-                if (!lines[used].gameObject.activeSelf) lines[used].gameObject.SetActive(true);
-                used++;
+                string color = ColorUtility.ToHtmlStringRGB(description.color);
+                firstColor ??= color;
+                changed |= SetLine(lines[used++], HintText.Line(modifier, key, color, description.text));
             }
+            // The game's actions come first, and the middle-click line takes a free line after them.
+            if (takeOne != null && firstColor != null && used < lines.Length)
+                changed |= SetLine(lines[used++], HintText.Line(null, MiddleMouseName, firstColor, takeOne));
             for (int i = used; i < lines.Length; i++)
                 if (lines[i].gameObject.activeSelf) lines[i].gameObject.SetActive(false);
             hintPanelUsed = used > 0;
@@ -779,6 +844,15 @@ namespace ProximityPickup.Labels
             var rt = hintPanel.GetComponent<RectTransform>();
             float w = rt.rect.width * rt.lossyScale.x, h = rt.rect.height * rt.lossyScale.y;
             rt.position = new Vector3(Screen.width / 2f + (rt.pivot.x - 0.5f) * w, bottom + rt.pivot.y * h, rt.position.z);
+        }
+
+        // Shows one line of the hint panel. True when its text changed.
+        private static bool SetLine(TextMeshProUGUI line, string text)
+        {
+            bool changed = line.text != text;
+            if (changed) line.text = text;
+            if (!line.gameObject.activeSelf) line.gameObject.SetActive(true);
+            return changed;
         }
 
         private static string FirstBinding(LocalPlayer player, InputAction action)

@@ -15,11 +15,12 @@ public class PluginTests : GameTestBase
     }
 
     [Fact]
-    public void The_config_defaults_are_group_pickup_at_two_meters_with_no_debug_lines()
+    public void The_config_defaults_are_group_pickup_at_two_meters_and_group_dig_at_one_meter_with_no_debug_lines()
     {
         Assert.Equal("Group", Plugin.PickModeEntry.Value);
         Assert.Equal(PickMode.Group, Plugin.PickMode);
         Assert.Equal(2f, Plugin.PickupRadius.Value);
+        Assert.Equal(1f, Plugin.DigRadius.Value);
         Assert.False(Plugin.Verbose.Value);
     }
 
@@ -38,9 +39,9 @@ public class PluginTests : GameTestBase
     }
 
     [Fact]
-    public void Both_patch_classes_are_patched()
+    public void Each_patch_class_is_patched()
     {
-        Assert.Equal(new[] { typeof(LabelPatches), typeof(PickupPatches) }, Harmony.Patched);
+        Assert.Equal(new[] { typeof(LabelPatches), typeof(PickupPatches), typeof(DigPatches), typeof(GatherPatches), typeof(ClickPatches) }, Harmony.Patched);
         Assert.Empty(Harmony.Unpatched);
         Assert.Empty(Plugin.Log.Warnings);
         Assert.Contains("Proximity Pickup loaded.", Plugin.Log.Infos);
@@ -51,7 +52,7 @@ public class PluginTests : GameTestBase
     {
         LoadAgainWithFailing(typeof(LabelPatches));
 
-        Assert.Equal(new[] { typeof(PickupPatches) }, Harmony.Patched);
+        Assert.Equal(new[] { typeof(PickupPatches), typeof(DigPatches), typeof(GatherPatches), typeof(ClickPatches) }, Harmony.Patched);
         Assert.Equal(new[] { Plugin.PluginGuid + ".LabelPatches" }, Harmony.Unpatched);
         Assert.Equal(new[] { "Label groups is off: Target not found" }, Plugin.Log.Warnings);
     }
@@ -61,9 +62,36 @@ public class PluginTests : GameTestBase
     {
         LoadAgainWithFailing(typeof(PickupPatches));
 
-        Assert.Equal(new[] { typeof(LabelPatches) }, Harmony.Patched);
+        Assert.Equal(new[] { typeof(LabelPatches), typeof(DigPatches), typeof(GatherPatches), typeof(ClickPatches) }, Harmony.Patched);
         Assert.Equal(new[] { Plugin.PluginGuid + ".PickupPatches" }, Harmony.Unpatched);
         Assert.Equal(new[] { "Group pickup is off: Target not found" }, Plugin.Log.Warnings);
+    }
+
+    [Fact]
+    public void A_failed_group_dig_patch_leaves_the_other_parts_on()
+    {
+        LoadAgainWithFailing(typeof(DigPatches));
+
+        Assert.Equal(new[] { typeof(LabelPatches), typeof(PickupPatches), typeof(GatherPatches), typeof(ClickPatches) }, Harmony.Patched);
+        Assert.Equal(new[] { "Group dig is off: Target not found" }, Plugin.Log.Warnings);
+    }
+
+    [Fact]
+    public void A_failed_group_gather_patch_leaves_the_other_parts_on()
+    {
+        LoadAgainWithFailing(typeof(GatherPatches));
+
+        Assert.Equal(new[] { typeof(LabelPatches), typeof(PickupPatches), typeof(DigPatches), typeof(ClickPatches) }, Harmony.Patched);
+        Assert.Equal(new[] { "Group gather is off: Target not found" }, Plugin.Log.Warnings);
+    }
+
+    [Fact]
+    public void A_failed_middle_click_patch_leaves_the_other_parts_on()
+    {
+        LoadAgainWithFailing(typeof(ClickPatches));
+
+        Assert.Equal(new[] { typeof(LabelPatches), typeof(PickupPatches), typeof(DigPatches), typeof(GatherPatches) }, Harmony.Patched);
+        Assert.Equal(new[] { "Middle-click is off: Target not found" }, Plugin.Log.Warnings);
     }
 
     [Fact]

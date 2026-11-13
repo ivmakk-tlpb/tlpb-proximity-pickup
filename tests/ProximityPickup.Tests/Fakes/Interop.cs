@@ -33,8 +33,31 @@ namespace Il2CppInterop.Runtime.InteropTypes.Arrays
     }
 }
 
+namespace Il2CppSystem
+{
+    public struct ValueTuple<T1, T2> { }
+}
+
 namespace Il2CppSystem.Collections.Generic
 {
+    public class List<T> : Il2CppInterop.Runtime.InteropTypes.Il2CppObjectBase
+    {
+        private readonly System.Collections.Generic.List<T> items = new System.Collections.Generic.List<T>();
+
+        public int Count => items.Count;
+        public T this[int index] => items[index];
+
+        public void Add(T item) { items.Add(item); }
+    }
+
+    public class HashSet<T>
+    {
+        private readonly System.Collections.Generic.HashSet<T> items = new System.Collections.Generic.HashSet<T>();
+
+        public bool Add(T item) => items.Add(item);
+        public bool Contains(T item) => items.Contains(item);
+    }
+
     // Keeps the order of Add, and accepts a null key, which a BCL dictionary does not.
     public class Dictionary<TKey, TValue>
     {

@@ -39,14 +39,16 @@ namespace ProximityPickup.Pickup
                 bool byLocalPlayer = local != null && interactorEntity.id == local.id;
                 Plugin.Debug($"Pickup start: interactor {interactorEntity.id}{(byLocalPlayer ? " (player)" : "")}, target {targetEntity.id}");
                 if (!byLocalPlayer) return;
+                // A middle-click takes one item, also in place of an open group plan of the same target.
+                bool takeOne = ClickPatches.TakeOne(targetEntity);
                 // The game starts the same pickup again while the character walks to the item. The plan of the
                 // click stays.
-                if (current != null && current.TargetId == targetEntity.id) return;
+                if (!takeOne && current != null && current.TargetId == targetEntity.id) return;
 
                 var target = Candidate(targetEntity);
                 if (target.Kind == null) return;
                 bool hasLabel = LabelPatches.TryGetLabelMembers(targetEntity.id, out var members);
-                var source = GroupPickupLogic.Plan(Plugin.PickMode, true, target, hasLabel);
+                var source = takeOne ? PickupSource.None : GroupPickupLogic.Plan(Plugin.PickMode, true, target, hasLabel);
                 current = new StoredPlan { TargetId = targetEntity.id, Kind = target.Kind, Source = source, Members = members };
                 Plugin.Debug($"Pickup plan: target {targetEntity.id}, kind {target.Kind}, source {source}, {members?.Count ?? 0} label members");
             }
@@ -218,7 +220,7 @@ namespace ProximityPickup.Pickup
         // equipped slot (large, lit fuel, some substances), a two-handed pickup drops what is in the hands, and an
         // item worn on the back unequips that slot. An equippable item changes the hands only when the bag is
         // full, so PickExtras checks the room for it.
-        private static bool GoesIntoHands(InventoryItemStack stack, InventoryItem item)
+        internal static bool GoesIntoHands(InventoryItemStack stack, InventoryItem item)
         {
             return stack.PreferEquippedSlot()
                 || item.HasTag(ItemTag.TWO_HANDED)

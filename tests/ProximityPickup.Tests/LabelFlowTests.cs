@@ -533,6 +533,35 @@ public class LabelFlowTests : GameTestBase
     }
 
     [Fact]
+    public void A_card_with_an_empty_title_gets_no_label_box_and_keeps_its_actions()
+    {
+        Plugin.Verbose.Value = true;
+        var panel = LabelScene.NewHintPanel();
+        var card = scene.OpenCard(LabelScene.NewEntity(10), At(320f, 340f), "");
+        LabelScene.AddRow(card, "Place down");
+
+        scene.Frame();
+
+        var box = LabelScene.BoxOf(card);
+        Assert.True(box == null || !box.gameObject.activeSelf);
+        Assert.Contains("Place down", panel.controls1.text);
+        Assert.Contains("Hover card 10: empty title, no label box", Plugin.Log.Debugs);
+    }
+
+    [Fact]
+    public void The_box_of_a_card_turns_off_when_its_title_goes_empty()
+    {
+        var card = scene.OpenCard(LabelScene.NewEntity(10), At(320f, 340f), "Bottle");
+        scene.Frame();
+        Assert.True(LabelScene.BoxOf(card).gameObject.activeSelf);
+
+        scene.SetGameText(card, " ");
+        scene.Frame();
+
+        Assert.False(LabelScene.BoxOf(card).gameObject.activeSelf);
+    }
+
+    [Fact]
     public void An_inactive_card_takes_no_part()
     {
         var a = scene.Item(10, "stick", World(1f), At(300f, 300f));
@@ -950,5 +979,190 @@ public class LabelFlowTests : GameTestBase
         scene.Frame();
 
         Assert.Equal(1, StaticState.Get<int>(typeof(LabelPatches), "slowFrames"));
+    }
+
+    [Fact]
+    public void An_open_hover_card_names_its_entity_also_with_no_label()
+    {
+        var mushroom = LabelScene.NewEntity(10);
+        scene.OpenCard(mushroom, At(300f, 300f), "Spotted Red Mushroom");
+
+        scene.Frame();
+
+        Assert.Same(mushroom, LabelPatches.CardEntity);
+    }
+
+    [Fact]
+    public void With_no_open_hover_card_no_entity_is_named()
+    {
+        var card = scene.OpenCard(LabelScene.NewEntity(10), At(300f, 300f), "Herb");
+        scene.Frame();
+        card.gameObject.SetActive(false);
+
+        scene.Frame();
+
+        Assert.Null(LabelPatches.CardEntity);
+    }
+
+    // Labels of quick resources
+
+    private Entity ResourceLabel(int id, string name, float x, Vector3 screen, bool ready = true, float duration = 0.8f)
+    {
+        var items = new IInventoryManager();
+        items.Items["cap"] = new InventoryItem { Identifier = "cap", Name = "Cap" };
+        ((WorldManager)scene.Hud.worldManager).inventoryManager = items;
+        var entity = GatherPatchesTests.Resource(id, name, x, ready, duration);
+        scene.AddLabel(entity, screen, name);
+        return entity;
+    }
+
+    [Fact]
+    public void Quick_resources_of_one_kind_show_one_label_with_their_number()
+    {
+        ResourceLabel(10, "Spotted Red Mushroom", 1f, At(100f, 100f));
+        ResourceLabel(11, "Spotted Red Mushroom", 1.2f, At(100f, 130f));
+        ResourceLabel(12, "Spotted Red Mushroom", 1.4f, At(150f, 130f));
+
+        scene.Frame();
+
+        Assert.Equal("Spotted Red Mushroom (3)", scene.Labels[10].text.text);
+        Assert.Equal(HiddenY, PositionOf(11).y);
+        Assert.True(LabelPatches.TryGetLabelMembers(11, out var members));
+        Assert.Equal(new[] { 10, 11, 12 }, members.Select(m => m.id).OrderBy(id => id));
+    }
+
+    [Fact]
+    public void A_resource_that_is_not_quick_stays_an_other_label()
+    {
+        ResourceLabel(10, "Blueberry Bush", 1f, At(100f, 100f), duration: 5f);
+        ResourceLabel(11, "Blueberry Bush", 1.2f, At(300f, 100f), duration: 5f);
+
+        scene.Frame();
+
+        Assert.Equal("Blueberry Bush", scene.Labels[10].text.text);
+        Assert.Equal(At(300f, 100f), PositionOf(11));
+        Assert.False(LabelPatches.TryGetLabelMembers(10, out _));
+        Assert.Equal(2, StaticState.Get<int>(typeof(LabelPatches), "lastOthers"));
+    }
+
+    [Fact]
+    public void A_resource_that_is_no_longer_ready_leaves_its_label_group_on_the_next_pass()
+    {
+        ResourceLabel(10, "Spotted Red Mushroom", 1f, At(100f, 100f));
+        var gathered = ResourceLabel(11, "Spotted Red Mushroom", 1.2f, At(300f, 100f));
+        ResourceLabel(12, "Spotted Red Mushroom", 1.4f, At(500f, 100f));
+        scene.Frame();
+        Assert.Equal("Spotted Red Mushroom (3)", scene.Labels[10].text.text);
+
+        gathered.GetCachedComponent<IGatherable>(false).Ready = false;
+        scene.Frame();
+
+        Assert.Equal("Spotted Red Mushroom (2)", scene.Labels[10].text.text);
+        Assert.NotEqual(HiddenY, PositionOf(11).y);
+        Assert.False(LabelPatches.TryGetLabelMembers(11, out _));
+    }
+
+    [Fact]
+    public void A_stick_item_and_a_stick_resource_do_not_merge()
+    {
+        scene.Item(10, "stick", World(1f), At(100f, 100f));
+        ResourceLabel(11, "Stick", 1.2f, At(300f, 100f));
+        ResourceLabel(12, "Stick", 1.4f, At(500f, 100f));
+
+        scene.Frame();
+
+        Assert.Equal("Stick", scene.Labels[10].text.text);
+        Assert.Equal("Stick (2)", scene.Labels[11].text.text);
+    }
+
+    [Fact]
+    public void Resources_with_no_inventory_manager_stay_other_labels()
+    {
+        ResourceLabel(10, "Spotted Red Mushroom", 1f, At(100f, 100f));
+        ResourceLabel(11, "Spotted Red Mushroom", 1.2f, At(300f, 100f));
+        ((WorldManager)scene.Hud.worldManager).inventoryManager = null;
+
+        scene.Frame();
+
+        Assert.Equal("Spotted Red Mushroom", scene.Labels[10].text.text);
+        Assert.Empty(Plugin.Log.Warnings);
+    }
+
+    // A quick resource in the world with no label, found by the radius search.
+    private Entity NearbyResource(int id, string name, float x, bool ready = true)
+    {
+        var items = new IInventoryManager();
+        items.Items["cap"] = new InventoryItem { Identifier = "cap", Name = "Cap" };
+        ((WorldManager)scene.Hud.worldManager).inventoryManager = items;
+        var entity = GatherPatchesTests.Resource(id, name, x, ready);
+        var collider = new GameObject("collider").AddComponent<Collider>();
+        scene.EntityManager.Entities[collider.gameObject] = entity;
+        Physics.Hits.Add(collider);
+        return entity;
+    }
+
+    [Fact]
+    public void A_card_of_a_quick_resource_with_no_label_shows_the_number_of_a_radius_gather()
+    {
+        var target = NearbyResource(10, "Dandelions", 1f);
+        NearbyResource(11, "Dandelions", 1.5f);
+        NearbyResource(12, "Dandelions", 2f);
+        NearbyResource(13, "Dandelions", 2.2f, ready: false);
+        NearbyResource(14, "Wild Garlic", 1.2f);
+        var card = scene.OpenCard(target, At(320f, 340f), "Dandelions");
+
+        scene.Frame();
+
+        Assert.Equal("Dandelions (3)", card.labelText.text);
+    }
+
+    [Fact]
+    public void A_card_of_a_lone_quick_resource_keeps_the_game_text()
+    {
+        var card = scene.OpenCard(NearbyResource(10, "Dandelions", 1f), At(320f, 340f), "Dandelions");
+
+        scene.Frame();
+
+        Assert.Equal("Dandelions", card.labelText.text);
+    }
+
+    [Fact]
+    public void A_card_of_a_resource_that_is_not_quick_keeps_the_game_text()
+    {
+        var target = NearbyResource(10, "Dandelions", 1f, ready: false);
+        NearbyResource(11, "Dandelions", 1.5f);
+        var card = scene.OpenCard(target, At(320f, 340f), "Dandelions");
+
+        scene.Frame();
+
+        Assert.Equal("Dandelions", card.labelText.text);
+        Assert.Equal(0, Physics.Calls);
+    }
+
+    [Fact]
+    public void A_card_of_a_quick_resource_in_the_pick_mode_one_keeps_the_game_text()
+    {
+        Plugin.PickModeEntry.Value = "One";
+        var target = NearbyResource(10, "Dandelions", 1f);
+        NearbyResource(11, "Dandelions", 1.5f);
+        var card = scene.OpenCard(target, At(320f, 340f), "Dandelions");
+
+        scene.Frame();
+
+        Assert.Equal("Dandelions", card.labelText.text);
+    }
+
+    [Fact]
+    public void The_hover_card_of_a_resource_in_a_group_shows_the_group()
+    {
+        var a = ResourceLabel(10, "Spotted Red Mushroom", 1f, At(300f, 300f));
+        ResourceLabel(11, "Spotted Red Mushroom", 1.2f, At(300f, 330f));
+        scene.Frame();
+        Enter(a);
+        var card = scene.OpenCard(a, At(320f, 340f), "Spotted Red Mushroom");
+
+        scene.Frame();
+
+        Assert.Equal("Spotted Red Mushroom (2)", card.labelText.text);
     }
 }

@@ -178,6 +178,7 @@ namespace UnityEngine
         public static Vector2 one => new Vector2(1f, 1f);
 
         public static Vector2 operator +(Vector2 a, Vector2 b) => new Vector2(a.x + b.x, a.y + b.y);
+        public static float Distance(Vector2 a, Vector2 b) => (float)Math.Sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
 
         public static bool operator ==(Vector2 a, Vector2 b)
         {
@@ -260,6 +261,7 @@ namespace UnityEngine
     public static class Time
     {
         public static int frameCount;
+        public static float unscaledTime;
     }
 
     public enum QueryTriggerInteraction { UseGlobal, Ignore, Collide }
@@ -337,5 +339,33 @@ namespace TMPro
         }
 
         public void ForceMeshUpdate(bool ignoreActiveState, bool forceTextReparsing) { MeshUpdates++; }
+    }
+}
+
+namespace UnityEngine.InputSystem.Controls
+{
+    public class ButtonControl
+    {
+        public bool wasPressedThisFrame;
+        public bool wasReleasedThisFrame;
+    }
+
+    public class Vector2Control
+    {
+        public UnityEngine.Vector2 Value;
+
+        public UnityEngine.Vector2 ReadValue() => Value;
+    }
+}
+
+namespace UnityEngine.InputSystem
+{
+    public class Mouse
+    {
+        // Null when the game has no mouse, as in the Input System.
+        public static Mouse current;
+
+        public readonly Controls.ButtonControl middleButton = new Controls.ButtonControl();
+        public readonly Controls.Vector2Control position = new Controls.Vector2Control();
     }
 }

@@ -1,0 +1,9 @@
+v1.1.0 - 2026-11-13
+Added: Collect clay, mud, or sand with your hands, and one action takes the same kind of ground within 1 m (up to 21 tries). One message shows the total. The setting DigRadius sets this reach.
+Added: Click a ready mushroom, herb, Dandelions, a stick, a small stone, or a Clay Deposit to gather every ready resource of the same kind on its label, or nearby with the labels off. Each one gives the normal yield and XP of one gather.
+Added: A group gather stops at the first resource whose drops do not fit in your bag. That resource stays in the world.
+Added: Labels of ready resources of the same kind merge into one label with their number, such as "Spotted Red Mushroom (5)".
+Added: With the labels off, the hover name of a resource shows how many a click gathers.
+Added: Middle-click to pick up one item or gather one resource, also from a merged label. Hold or drag the middle mouse button to turn the camera as before.
+Added: The line of actions above the hotbar shows the middle mouse button with "Pick up one" or "Gather one" on a merged label.
+Fixed: No empty label box shows above your character while you hold an item such as a bottle.

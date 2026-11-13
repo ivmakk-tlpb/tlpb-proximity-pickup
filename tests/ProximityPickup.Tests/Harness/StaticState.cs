@@ -10,7 +10,7 @@ internal static class StaticState
     private const BindingFlags AnyStatic = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
     private const BindingFlags AnyInstance = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 
-    private static readonly Type[] PatchClasses = { typeof(LabelPatches), typeof(PickupPatches), typeof(Plugin) };
+    private static readonly Type[] PatchClasses = { typeof(LabelPatches), typeof(PickupPatches), typeof(GatherPatches), typeof(ClickPatches), typeof(DigPatches), typeof(Plugin) };
 
     // Read in the static constructor, which runs before the first test changes a field.
     private static readonly List<(FieldInfo Field, object Value)> AtLoad = ReadFieldsAtLoad();
