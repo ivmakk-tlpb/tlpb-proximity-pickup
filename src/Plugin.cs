@@ -8,7 +8,7 @@ using HarmonyLib;
 
 namespace ProximityPickup
 {
-    [BepInPlugin(PluginGuid, "Proximity Pickup", "1.0.0")]
+    [BepInPlugin(PluginGuid, "Proximity Pickup", "1.1.0")]
     [BepInProcess("TheLastPlague.exe")]
     public sealed class Plugin : BasePlugin
     {
