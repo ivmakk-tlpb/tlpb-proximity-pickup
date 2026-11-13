@@ -10,7 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-- One action of collecting clay, mud, or sand by hand takes the same kind of ground within `PickupRadius`, with one message for the total.
+- One action of collecting clay, mud, or sand by hand takes the same kind of ground within `DigRadius`, with one message for the total.
+- The setting `DigRadius` (default 1 m, up to 21 tries), separate from `PickupRadius`.
 - A gather of a ready resource that you gather in a moment (mushrooms, herbs, Dandelions, sticks, small stones, Clay Deposits) also gathers the same kind on its label, or within `PickupRadius` with the labels off. Each resource gives the yield and the XP of one normal gather, and one message shows the total.
 - A group gather stops before a resource whose drops do not fit in the bag, and that resource stays in the world.
 - Labels of ready resources of the same kind merge into one label with their number, such as "Spotted Red Mushroom (5)".

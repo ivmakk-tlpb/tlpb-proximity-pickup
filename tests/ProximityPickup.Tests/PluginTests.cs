@@ -15,11 +15,12 @@ public class PluginTests : GameTestBase
     }
 
     [Fact]
-    public void The_config_defaults_are_group_pickup_at_two_meters_with_no_debug_lines()
+    public void The_config_defaults_are_group_pickup_at_two_meters_and_group_dig_at_one_meter_with_no_debug_lines()
     {
         Assert.Equal("Group", Plugin.PickModeEntry.Value);
         Assert.Equal(PickMode.Group, Plugin.PickMode);
         Assert.Equal(2f, Plugin.PickupRadius.Value);
+        Assert.Equal(1f, Plugin.DigRadius.Value);
         Assert.False(Plugin.Verbose.Value);
     }
 

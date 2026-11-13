@@ -42,7 +42,7 @@ namespace ProximityPickup.Pickup
                 var local = LabelPatches.LocalPlayerEntity;
                 bool byLocalPlayer = local != null && interactor != null && interactor.id == local.id;
                 bool isHost = interactor != null && interactor.isHostEntity;
-                float radius = Plugin.PickupRadius.Value;
+                float radius = Plugin.DigRadius.Value;
                 Plugin.Debug($"Dig effect: hand dig {interaction != null}, local {byLocalPlayer}, host {isHost}, mode {Plugin.PickMode}, radius {radius}");
                 if (!DigSpots.ShouldGroupDig(Plugin.PickMode, radius, interaction != null, byLocalPlayer, isHost)) return;
                 if (interaction.id == lastDug || !__result.success) return;

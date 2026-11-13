@@ -8,7 +8,7 @@ using Result = DigTerrainEffect.DigTerrainEffectResult;
 public class DigPatchesTests : GameTestBase
 {
     private const int Clay = 7, Mud = 8;
-    private const int SpotsAtTwoMeters = 69;
+    private const int SpotsAtOneMeter = 21, SpotsAtTwoMeters = 69;
 
     private readonly Entity player = LabelScene.NewEntity(1);
     private readonly World world = new World();
@@ -19,6 +19,7 @@ public class DigPatchesTests : GameTestBase
     public DigPatchesTests()
     {
         LabelPatches.LocalPlayerEntity = player;
+        Plugin.DigRadius.Value = 2f;
         player.world = world;
         world.specialGatherSurfaceTypes.Add(SurfaceType.CLAY);
         interaction.targetPosition = clicked;
@@ -224,10 +225,42 @@ public class DigPatchesTests : GameTestBase
     }
 
     [Fact]
-    public void A_radius_of_zero_digs_as_in_the_game()
+    public void A_dig_radius_of_zero_digs_as_in_the_game()
+    {
+        Plugin.DigRadius.Value = 0f;
+        AssertVanilla();
+    }
+
+    [Fact]
+    public void The_default_dig_radius_of_one_meter_digs_21_spots()
+    {
+        Plugin.DigRadius.Value = 1f;
+
+        Run();
+
+        Assert.Equal(SpotsAtOneMeter - 1, effect.Executed.Count);
+    }
+
+    [Fact]
+    public void A_pickup_radius_of_zero_keeps_the_group_dig()
     {
         Plugin.PickupRadius.Value = 0f;
-        AssertVanilla();
+        Plugin.DigRadius.Value = 1f;
+
+        Run();
+
+        Assert.Equal(SpotsAtOneMeter - 1, effect.Executed.Count);
+    }
+
+    [Fact]
+    public void A_large_pickup_radius_does_not_widen_the_group_dig()
+    {
+        Plugin.PickupRadius.Value = 5f;
+        Plugin.DigRadius.Value = 1f;
+
+        Run();
+
+        Assert.Equal(SpotsAtOneMeter - 1, effect.Executed.Count);
     }
 
     [Fact]
@@ -410,7 +443,7 @@ public class DigPatchesTests : GameTestBase
     [Fact]
     public void A_radius_that_holds_only_the_clicked_spot_keeps_the_repeating_action()
     {
-        Plugin.PickupRadius.Value = 0.3f;
+        Plugin.DigRadius.Value = 0.3f;
 
         AssertVanilla();
         Update(interaction);

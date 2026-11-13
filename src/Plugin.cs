@@ -17,6 +17,7 @@ namespace ProximityPickup
         internal static new ManualLogSource Log;
         internal static ConfigEntry<string> PickModeEntry;
         internal static ConfigEntry<float> PickupRadius;
+        internal static ConfigEntry<float> DigRadius;
         internal static ConfigEntry<bool> Verbose;
 
         private static readonly HashSet<string> warned = new HashSet<string>();
@@ -31,13 +32,17 @@ namespace ProximityPickup
                 new ConfigDescription(
                     "Group: a click on a label, or on an item with a label, picks all the items on that label. A click on an item with no label also picks the items of the same kind within PickupRadius. " +
                     "A gather of a ready mushroom, herb, or other resource that you gather in a moment also gathers the resources of the same kind on its label, or within PickupRadius with no label. " +
-                    "Collecting clay, mud, or sand by hand takes the same kind of ground within PickupRadius in one action. " +
+                    "Collecting clay, mud, or sand by hand takes the same kind of ground within DigRadius in one action. " +
                     "One: each click picks one item, gathers one resource, and each try collects one spot, as in the game. The merged labels, the label layout, and the middle-click stay on in both modes.",
                     new AcceptableValueList<string>("Group", "One")));
             PickupRadius = Config.Bind(
                 "General", "PickupRadius", 2f,
-                "How close in meters items or resources of the same kind must lie to merge into one label, how far a click on an item or resource with no label reaches, and how far one action of collecting from the ground reaches (2 m gives up to 69 tries, with a limit of 256). " +
-                "0 merges no labels, picks or gathers only the clicked thing, and collects one spot at a time.");
+                "How close in meters items or resources of the same kind must lie to merge into one label, and how far a click on an item or resource with no label reaches. " +
+                "0 merges no labels, and picks or gathers only the clicked thing. Collecting from the ground has its own DigRadius.");
+            DigRadius = Config.Bind(
+                "General", "DigRadius", 1f,
+                "How far in meters one action of collecting clay, mud, or sand by hand reaches: 1 m gives up to 21 tries, 2 m up to 69, with a limit of 256. " +
+                "0 collects one spot at a time, as in the game.");
             Verbose = Config.Bind(
                 "General", "Verbose", false,
                 "Writes extra diagnostic lines to the BepInEx log for troubleshooting. Keep off in normal play.");
