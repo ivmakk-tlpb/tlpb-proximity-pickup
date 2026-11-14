@@ -47,6 +47,7 @@ namespace ProximityPickup
                 "General", "Verbose", false,
                 "Writes extra diagnostic lines to the BepInEx log for troubleshooting. Keep off in normal play.");
             Patch(typeof(Labels.LabelPatches), "Label groups");
+            Patch(typeof(Labels.CaveLabelPatches), "Cave labels");
             Patch(typeof(Pickup.PickupPatches), "Group pickup");
             Patch(typeof(Pickup.DigPatches), "Group dig");
             Patch(typeof(Pickup.GatherPatches), "Group gather");

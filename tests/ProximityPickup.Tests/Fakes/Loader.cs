@@ -105,6 +105,9 @@ namespace HarmonyLib
     [AttributeUsage(AttributeTargets.Method)]
     public sealed class HarmonyPostfix : Attribute { }
 
+    [AttributeUsage(AttributeTargets.Method)]
+    public sealed class HarmonyFinalizer : Attribute { }
+
     // Applies no patch: it records each call. A test sets ThrowFor to make PatchAll fail for one patch class.
     public sealed class Harmony
     {

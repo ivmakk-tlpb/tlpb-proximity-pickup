@@ -370,8 +370,16 @@ public class GatherEffect : Il2CppObjectBase
     public void OnExecuted(GatherEffectResult result) { Finished.Add(result); }
 }
 
+public class PlayerManager : Il2CppObjectBase { }
+
 public class World : Il2CppObjectBase
 {
+    // The getter of the game reads maxVisibleLevel < 0. A test can make it throw.
+    public System.Func<bool> Underground = () => false;
+    public bool UndergroundVisible => Underground();
+
+    public void GetEntitiesAroundPointWithAnyComponents(Vector3 position, float range, object result, object requiredComponentNames) { }
+
     public Il2CppSystem.Collections.Generic.HashSet<SurfaceType> specialGatherSurfaceTypes = new Il2CppSystem.Collections.Generic.HashSet<SurfaceType>();
     public float Height = 5f;
     public System.Func<Vector3, SurfaceType> Surface = _ => SurfaceType.CLAY;

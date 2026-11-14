@@ -11,4 +11,4 @@ Every setting lives in `BepInEx\config\com.ivmakk.thelastplagueblight.proximityp
 | `DigRadius` | `1` | meters, `0` or more | How far one action of collecting clay, mud, or sand by hand reaches: 1 m gives up to 21 tries, 2 m up to 69, with a limit of 256 tries. `0` collects one spot at a time, as in the game. |
 | `Verbose` | `false` | `true` / `false` | Writes extra diagnostic lines to the BepInEx log for troubleshooting. Keep off in normal play. |
 
-The label boxes, the line of actions above the hotbar, and the middle-click have no settings.
+The label boxes, the line of actions above the hotbar, the middle-click, and the labels in caves have no settings.

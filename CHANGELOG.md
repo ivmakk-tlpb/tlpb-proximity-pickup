@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- In a cave, the item labels show within 10 m, with or without a lit torch, as on the surface in the day. The game shows them there only within 3 m of a lit torch.
+
 ## [1.1.0] - 2026-11-13
 
 ### Added

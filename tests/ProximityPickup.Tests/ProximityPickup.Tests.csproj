@@ -18,8 +18,10 @@
     <Compile Include="..\..\src\HoverFreeze.cs" Link="HoverFreeze.cs" />
     <Compile Include="..\..\src\DigSpots.cs" Link="DigSpots.cs" />
     <Compile Include="..\..\src\MiddleClick.cs" Link="MiddleClick.cs" />
+    <Compile Include="..\..\src\CaveLabels.cs" Link="CaveLabels.cs" />
     <Compile Include="..\..\src\Plugin.cs" Link="Plugin.cs" />
     <Compile Include="..\..\src\Labels\LabelPatches.cs" Link="Labels\LabelPatches.cs" />
+    <Compile Include="..\..\src\Labels\CaveLabelPatches.cs" Link="Labels\CaveLabelPatches.cs" />
     <Compile Include="..\..\src\Pickup\PickupPatches.cs" Link="Pickup\PickupPatches.cs" />
     <Compile Include="..\..\src\Pickup\DigPatches.cs" Link="Pickup\DigPatches.cs" />
     <Compile Include="..\..\src\Pickup\NativeItemCounts.cs" Link="Pickup\NativeItemCounts.cs" />
