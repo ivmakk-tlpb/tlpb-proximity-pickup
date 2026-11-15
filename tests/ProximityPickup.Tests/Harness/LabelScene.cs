@@ -50,6 +50,23 @@ internal sealed class LabelScene
         return entity;
     }
 
+    // An entity that the collider query of a radius search finds.
+    public Entity WithCollider(Entity entity)
+    {
+        var collider = new GameObject("collider").AddComponent<Collider>();
+        EntityManager.Entities[collider.gameObject] = entity;
+        Physics.Hits.Add(collider);
+        return entity;
+    }
+
+    // An item in its placed form: the game gives it the component placed_item.
+    public static Entity NewPlaced(int id, string kind, string name, Vector3 world)
+    {
+        var entity = NewItem(id, kind, name, world);
+        entity.SetCached(new IPlacedItem());
+        return entity;
+    }
+
     // A component on a new object with a RectTransform that is centered on its position.
     public static T NewRect<T>(Rect rect, Vector3 position) where T : Component, new()
     {

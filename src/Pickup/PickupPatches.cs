@@ -46,7 +46,11 @@ namespace ProximityPickup.Pickup
                 if (!takeOne && current != null && current.TargetId == targetEntity.id) return;
 
                 var target = Candidate(targetEntity);
-                if (target.Kind == null) return;
+                if (target.Kind == null)
+                {
+                    Plugin.Debug($"Pickup plan: target {targetEntity.id} is no ground item, no plan");
+                    return;
+                }
                 bool hasLabel = LabelPatches.TryGetLabelMembers(targetEntity.id, out var members);
                 var source = takeOne ? PickupSource.None : GroupPickupLogic.Plan(Plugin.PickMode, true, target, hasLabel);
                 current = new StoredPlan { TargetId = targetEntity.id, Kind = target.Kind, Source = source, Members = members };
@@ -212,7 +216,7 @@ namespace ProximityPickup.Pickup
         {
             var stack = entity.GetCachedComponent<IPickupable>(false)?.GetItemStack();
             var item = stack?.Item;
-            if (item == null) return new PickupCandidate(entity.id, null, false);
+            if (item == null || PlacedItems.IsPlaced(entity)) return new PickupCandidate(entity.id, null, false);
             return new PickupCandidate(entity.id, item.Identifier, GoesIntoHands(stack, item));
         }
 

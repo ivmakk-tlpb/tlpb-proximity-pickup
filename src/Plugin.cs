@@ -38,7 +38,8 @@ namespace ProximityPickup
             PickupRadius = Config.Bind(
                 "General", "PickupRadius", 2f,
                 "How close in meters items or resources of the same kind must lie to merge into one label, and how far a click on an item or resource with no label reaches. " +
-                "0 merges no labels, and picks or gathers only the clicked thing. Collecting from the ground has its own DigRadius.");
+                "0 merges no labels, and picks or gathers only the clicked thing. Placed items, such as molds and traps, never merge and are never picked with others. " +
+                "Collecting from the ground has its own DigRadius.");
             DigRadius = Config.Bind(
                 "General", "DigRadius", 1f,
                 "How far in meters one action of collecting clay, mud, or sand by hand reaches: 1 m gives up to 21 tries, 2 m up to 69, with a limit of 256. " +

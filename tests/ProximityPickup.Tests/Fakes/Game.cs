@@ -87,6 +87,8 @@ public class InventoryItemStack : Il2CppObjectBase
     public int GetMaxStackAmount() => Item?.MaxStack ?? 1;
 }
 
+public class IPlacedItem : Il2CppObjectBase { }
+
 public class IPickupable : Il2CppObjectBase
 {
     public InventoryItemStack Stack;
@@ -140,6 +142,9 @@ public class Entity : Il2CppObjectBase
 {
     private readonly Dictionary<System.Type, object> cached = new Dictionary<System.Type, object>();
 
+    // A component type whose read throws, as a read of a type that a game update removed.
+    public System.Type ThrowOn;
+
     public int id;
     public bool destroyed;
     public bool isHostEntity = true;
@@ -150,6 +155,7 @@ public class Entity : Il2CppObjectBase
 
     public T GetCachedComponent<T>(bool write) where T : class
     {
+        if (ThrowOn == typeof(T)) throw new InvalidOperationException("no type " + typeof(T).Name);
         return cached.TryGetValue(typeof(T), out var component) ? (T)component : null;
     }
 }
