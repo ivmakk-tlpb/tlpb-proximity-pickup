@@ -955,7 +955,7 @@ namespace ProximityPickup.Labels
             data = new ItemData { EntityId = entity.id };
             var stack = entity.GetCachedComponent<IPickupable>(false)?.GetItemStack();
             var item = stack?.Item;
-            if (item != null)
+            if (item != null && !PlacedItems.IsPlaced(entity))
             {
                 data.Kind = item.Identifier;
                 data.Name = item.Name;
@@ -1018,7 +1018,7 @@ namespace ProximityPickup.Labels
                 FreezeGroupOf(targetEntity.id);
                 if (!Plugin.Verbose.Value) return;
                 var data = DataOf(targetEntity);
-                Plugin.Debug($"Hover: entity {targetEntity.id}, kind {data.Kind ?? "(not an item)"}, label group {Math.Max(1, frozen.Count)}");
+                Plugin.Debug($"Hover: entity {targetEntity.id}, kind {data.Kind ?? "(no ground item)"}, label group {Math.Max(1, frozen.Count)}");
             }
             catch (Exception e)
             {

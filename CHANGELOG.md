@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-15
+
+### Added
+
+- In a cave, the item labels show within 10 m, with or without a lit torch, as on the surface in the day. The game shows them there only within 3 m of a lit torch.
+
+### Fixed
+
+- Items that you placed (molds, traps, Logs, pots, backpacks, lanterns, and other placed items) keep their own labels and never merge, so you can use each one. A pickup of a placed item takes only that item, and a pickup never takes a placed item next to it, so a mold with molten metal or ingots stays where it is. Items of the same kinds that lie dropped on the ground still merge and pick up as a pile.
+
 ## [1.1.0] - 2026-11-13
 
 ### Added

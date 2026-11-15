@@ -87,6 +87,8 @@ public class InventoryItemStack : Il2CppObjectBase
     public int GetMaxStackAmount() => Item?.MaxStack ?? 1;
 }
 
+public class IPlacedItem : Il2CppObjectBase { }
+
 public class IPickupable : Il2CppObjectBase
 {
     public InventoryItemStack Stack;
@@ -140,6 +142,9 @@ public class Entity : Il2CppObjectBase
 {
     private readonly Dictionary<System.Type, object> cached = new Dictionary<System.Type, object>();
 
+    // A component type whose read throws, as a read of a type that a game update removed.
+    public System.Type ThrowOn;
+
     public int id;
     public bool destroyed;
     public bool isHostEntity = true;
@@ -150,6 +155,7 @@ public class Entity : Il2CppObjectBase
 
     public T GetCachedComponent<T>(bool write) where T : class
     {
+        if (ThrowOn == typeof(T)) throw new InvalidOperationException("no type " + typeof(T).Name);
         return cached.TryGetValue(typeof(T), out var component) ? (T)component : null;
     }
 }
@@ -370,8 +376,16 @@ public class GatherEffect : Il2CppObjectBase
     public void OnExecuted(GatherEffectResult result) { Finished.Add(result); }
 }
 
+public class PlayerManager : Il2CppObjectBase { }
+
 public class World : Il2CppObjectBase
 {
+    // The getter of the game reads maxVisibleLevel < 0. A test can make it throw.
+    public System.Func<bool> Underground = () => false;
+    public bool UndergroundVisible => Underground();
+
+    public void GetEntitiesAroundPointWithAnyComponents(Vector3 position, float range, object result, object requiredComponentNames) { }
+
     public Il2CppSystem.Collections.Generic.HashSet<SurfaceType> specialGatherSurfaceTypes = new Il2CppSystem.Collections.Generic.HashSet<SurfaceType>();
     public float Height = 5f;
     public System.Func<Vector3, SurfaceType> Surface = _ => SurfaceType.CLAY;

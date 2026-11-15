@@ -1,4 +1,4 @@
-![version](https://img.shields.io/badge/version-1.1.0-blue) ![coverage](https://img.shields.io/badge/coverage-99%25-brightgreen)
+![version](https://img.shields.io/badge/version-1.2.0-blue) ![coverage](https://img.shields.io/badge/coverage-99%25-brightgreen)
 
 # Proximity Pickup
 
@@ -7,6 +7,8 @@ Proximity Pickup is a mod for the Steam game *The Last Plague: Blight*. Items dr
 ## Features
 
 - **Merged labels.** With the item labels on, items of the same kind that lie within 2 m merge into one label with the total count, for example "Stick (5)" for 5 sticks or "Long Stick (10)" for 5 stacks of 2. A single item keeps the game's own label text, with "Wet" and its condition. Zooming the camera does not change the merged labels. A pile wider than 2 m can show two labels, each with its own count. Ready resources that you gather in a moment merge the same way, with the number of resources: "Spotted Red Mushroom (5)". An item label and a resource label never merge, and unripe resources keep their own labels.
+- **Placed items stay apart.** Items that you placed keep their own labels and never merge: a Clay Ingot Mold, a Rabbit Snare, a Log, a Clay Pot, a backpack, a lantern, and every other placed item. So you can pour metal into each mold and check each trap. A pickup of a placed item takes only that item, and a group pickup never takes a placed item, so a mold with molten metal or ingots next to it stays where it is. The same items lying dropped on the ground merge as usual.
+- **Labels in caves.** In a cave the game shows no item labels unless you hold a lit torch, and then only within 3 m. With the mod, the labels in a cave show within 10 m, with or without a torch, as on the surface in the day, so merged labels and the one-click pickup work there too. On the surface the label distance stays as in the game, also at night.
 - **No overlapping labels.** All labels that still overlap move up or down until each has its own space, also the labels of stockpiles, resources, and constructions. Labels never move sideways, and no lines are drawn.
 - **Label boxes.** Each label of an item, stockpile, resource, or construction sits on a half-transparent dark box, and the whole box is clickable. Area names such as "Lake" have no box.
 - **A hover that stays in place.** Move the cursor onto a label or onto its item, and the name stays where the label was, with the same color and font size. Its box gets darker and gains a thin border in the color of the label. The labels around it do not move. For a merged label, the name shows the total count.
